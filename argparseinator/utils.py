@@ -89,7 +89,7 @@ def string_or_bool(value):
     return value
 
 
-def get_options(func, create=False):
+def get_arguments(func, create=False):
     """
     Ritorna le opzioni di una funzione se ci sono o None
 
@@ -105,18 +105,18 @@ def get_options(func, create=False):
     # Se *func* è un metodo statico le opzioni sono dentro __func__
     if isinstance(func, staticmethod):
         try:
-            options = func.__func__.__options__
+            arguments = func.__func__.__arguments__
         except AttributeError:
             if create:
-                options = func.__func__.__options__ = []
+                arguments = func.__func__.__arguments__ = []
             else:
-                options = None
+                arguments = None
     else:
         try:
-            options = func.__options__
+            arguments = func.__arguments__
         except AttributeError:
             if create:
-                options = func.__options__ = []
+                arguments = func.__arguments__ = []
             else:
-                options = None
-    return options
+                arguments = None
+    return arguments

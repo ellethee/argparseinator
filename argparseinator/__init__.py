@@ -25,6 +25,8 @@ class ArgParserInator(object):
     _output = sys.stdout
     parser = None
     _is_parsed = False
+    _single = False
+    never_single = False
     new_attrs = {}
     # commands
     commands = {}
@@ -40,6 +42,7 @@ class ArgParserInator(object):
             self.auth_phrase = kwargs.pop('auth', None)
             #: parser wide arguments (if any)
             ap_args = kwargs.pop('args', None)
+            self.never_single = kwargs.pop('never_single', False)
             # set some default.
             kwargs.update({
                 'conflict_handler': 'resolve',
@@ -64,14 +67,40 @@ class ArgParserInator(object):
             if ap_args is not None:
                 for aargs, akargs in ap_args:
                     self.parser.add_argument(*aargs, **akargs)
-            # self.subparsers = self.parser.add_subparsers(
-                # title='Comandi', dest='command',
-                # description="Comandi validi per %(prog)s.")
+
+    def _compile(self):
+        """
+        Compile functions for argparsing.
+        """
+        if len(self.commands) == 1 and self.never_single is False:
+            func = self.commands.values()[0]
+            for args, kwargs in func.__arguments__:
+                self.parser.add_argument(*args, **kwargs)
+            self._single = func
+        else:
+            self._single = None
+            self.subparsers = self.parser.add_subparsers(
+                title='Comandi', dest='command',
+                description="Comandi validi per %(prog)s.")
+            for key, func in self.commands.iteritems():
+                if func.__subcommands__:
+                    sub = self.subparsers.add_subparsers(
+                        title="Sottocomandi",
+                        dest='subcommand',
+                        description='Comandi di %s' % cls.name,
+                        help=cls.__doc__)
+                else:
+                    fparser = self.subparsers.add_parser(
+                        func.__name__, help=func.__doc__,
+                        conflict_handler='resolve')
+                    for args, kwargs in func.__arguments__:
+                        fparser.add_argument(*args, **kwargs)
 
     def parse_args(self):
         """
         Parse our arguments.
         """
+        self._compile()
         self.args = self.parser.parse_args()
         # set up the output.
         if 'output' in self.args and self.args.output is not None:
@@ -110,32 +139,29 @@ class ArgParserInator(object):
         # Recuperiamo il comando.
         if not self.commands:
             raise exceptions.ArgParseInatorNoCommandsFound
-        if not self.args.commands and len(self.commands) == 1:
-            act = self.commands.values()[0]
+        elif self._single:
+            func = self._single
         else:
-            act = self.commands[self.args.command]
+            func = self.commands[self.args.command]
         # Vediamo se abbiamo un sottocomando e in caso lo impostiamo
-        if act.subcommands is not None:
-            subcommand = act.subcommands[self.args.subcommand]
+        if func.__subcommands__ is not None:
+            subcommand = func.__subcommands__[self.args.subcommand]
         # Altrimenti vediamo se abbiamo un metodo e impostiamo quello come
         # sottocomando.
-        elif act.method is not None:
-            subcommand = act.method
-        # Se non troviamo nulla diamo un errore di comando non valido.
         else:
-            raise exceptions.ArgParseInatorInvalidCommand
+            subcommand = func
         # Verifichiamo l'autorizzazione.
         if not self.check_auth(id(subcommand)):
             return 0
         # Se abbiamo una classe la utilizziamo per chiamare il comando
-        if act.cls is not None:
+        if func.__cls__ is not None:
             try:
                 # Proviamo ad instanziare la classe passando self come
                 # argomento.
-                return subcommand(act.cls(self), self.args)
+                return subcommand(func.__cls__(self), self.args)
             except TypeError:
                 # Se da un errore instaziamo la classe senza parametri.
-                return subcommand(act.cls(), self.args)
+                return subcommand(func.__cls__(), self.args)
         # Se non abbiamo la classe chiamiamo direttamente la funzione.
         else:
             return subcommand(self.args)
@@ -164,22 +190,38 @@ def arg(*args, **kwargs):
         """
         Docora la funzione.
         """
-        if utils.check_class() is not None:
-            options = utils.get_options(func, True)
-            if len(args):
-                options.append((args, kwargs))
-        elif isinstance(func, types.FunctionType):
-            esa = ArgParserInator()
-            if func.__name__ not in esa.commands:
-                esa.commands[func.__name__] = dict(
-                    method=func,
-                    # argp_params=(
-                    #     func.__name__, help=func.__doc__,
-                    #     conflict_handler='resolve',),
-                    args=args,
-                    kwargs=kwargs)
-        # if len(args) or len(kwargs):
-        #     esa.commands[func.__name__].argp.add_argument(*args, **kwargs)
-            # func.arguments = esa.commands[func.__name__].argp
+        ap_ = ArgParserInator()
+        if func.__name__ not in ap_.commands:
+            func.__arguments__ = []
+            func.__subcommands__ = None
+            func.__cls__ = None
+            ap_.commands[func.__name__] = func
+        if len(args) or len(kwargs):
+            func.__arguments__.append((args, kwargs,))
         return func
     return decorate
+
+
+def class_args(cls):
+    """
+    Decora una classe *preparandola* per gestire il parser di argomenti.
+    """
+    ap_ = ArgParserInator()
+    print "CLASSAERS!!!"
+    if hasattr(cls, '__subname__'):
+        cls.__subcommands__ = {}
+        cls.__arguments__ = []
+        for name, func in cls.__dict__.iteritems():
+            arguments = utils.get_arguments(func)
+            if arguments is not None:
+                cls.__subcommands__[name] = func
+        ap_.commands[cls.__subname__] = cls
+    else:
+        for name, func in cls.__dict__.iteritems():
+            arguments = utils.get_arguments(func)
+            if arguments is not None:
+                func.__cls__ = cls
+                func.__arguments__ = []
+                func.__subcommands__ = None
+                ap_.commands[name] = func
+    return cls
