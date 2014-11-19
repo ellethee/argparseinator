@@ -40,16 +40,16 @@ class ArgParserInator(object):
     auth_phrase = None
 
     def __init__(
-            self, auth_phrase=None, never_single=False, args=None,
-            add_output=False, **kwargs):
+            self, add_output=False, args=None, auth_phrase=None,
+            never_single=False, **kwargs):
         if self.parser is None:
             self.auth_phrase = auth_phrase
             self.never_single = never_single
-            formatter_class = kwargs.get(
-                'formatter_class', utils.SubcommandHelpFormatter)
+            #formatter_class = kwargs.get(
+            #    'formatter_class', utils.SubcommandHelpFormatter)
             kwargs.update({
                 'conflict_handler': 'resolve',
-                'formatter_class': formatter_class,
+                #'formatter_class': formatter_class,
             })
             # create the parser
             self.parser = argparse.ArgumentParser(**kwargs)

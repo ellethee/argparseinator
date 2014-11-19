@@ -13,66 +13,74 @@ from argparseinator import ArgParserInator, arg, class_args, cmd_auth, ap_arg
 
 
 AP = ArgParserInator(
-    description="ArgParserInator test",
-    add_output=True,
-    auth_phrase="t",
+    description="Silly script",
+    #add_output=True,
+    #auth_phrase="t",
 )
 _ = AP.writeln
 
 
-@arg("fliename", help="File name", nargs="*")
-@cmd_auth()
-def lista(args):
+@arg("name", help="Name to print")
+def print_name(args):
     """
-    list files.
+    Print name.
     """
-    for fil in ('luca', 'luigi', 'filippo'):
-        _(fil)
+    print "Printing the name...", args.name
 
 
-@arg("fliename", help="File name", nargs="*")
-@cmd_auth('luca')
-def lista2(args):
-    """
-    list files.
-    """
-    for fil in ('luca', 'luigi', 'filippo'):
-        AP.writeln(fil)
+#@arg("fliename", help="File name", nargs="*")
+#@cmd_auth()
+#def lista(args):
+#    """
+#    list files.
+#    """
+#    for fil in ('luca', 'luigi', 'filippo'):
+#        _(fil)
 
 
-@class_args
-class Prova(object):
-    """
-    Classe di prova.
-    """
-
-    @arg("name", help="Test coso")
-    def clslist(self, args):
-        """
-        cls test.
-        """
-        AP.writeln("cls test")
+#@arg("fliename", help="File name", nargs="*")
+#@cmd_auth('luca')
+#def lista2(args):
+#    """
+#    list files.
+#    """
+#    for fil in ('luca', 'luigi', 'filippo'):
+#        AP.writeln(fil)
 
 
-@class_args
-class Prova2(object):
-    """
-    Classe di prova.
-    """
-    __subname__ = "mario"
-    __arguments__ = [
-        ap_arg('-j', '--jump', help="Salta il coso", action="store_true")
-    ]
-    __shared_arguments__ = [
-        ap_arg('-k', '--kill', help="killa il coso", action="store_true")
-    ]
+#@class_args
+#class Prova(object):
+#    """
+#    Classe di prova.
+#    """
 
-    @arg("name", help="Test coso")
-    def clslist2(self, args):
-        """
-        cls test.
-        """
-        AP.writeln("cls test")
+#    @arg("name", help="Test coso")
+#    def clslist(self, args):
+#        """
+#        cls test.
+#        """
+#        AP.writeln("cls test")
+
+
+#@class_args
+#class Prova2(object):
+#    """
+#    Classe di prova.
+#    """
+#    __subname__ = "mario"
+#    __arguments__ = [
+#        ap_arg('-j', '--jump', help="Salta il coso", action="store_true")
+#    ]
+#    __shared_arguments__ = [
+#        ap_arg('-k', '--kill', help="killa il coso", action="store_true")
+#    ]
+
+#    @arg("name", help="Test coso")
+#    def clslist2(self, args):
+#        """
+#        cls test.
+#        """
+#        AP.writeln("cls test")
 
 if __name__ == "__main__":
     AP.chek_command()
