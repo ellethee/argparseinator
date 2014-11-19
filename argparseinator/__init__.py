@@ -30,6 +30,8 @@ class ArgParserInator(object):
     new_attrs = {}
     # commands
     commands = {}
+    # subparsers
+    subparsers = None
     # parsed arguments
     args = None
     # authorizations
@@ -37,41 +39,38 @@ class ArgParserInator(object):
     # authorization phrase
     auth_phrase = None
 
-    def __init__(self, **kwargs):
+    def __init__(
+            self, auth_phrase=None, never_single=False, args=None,
+            add_output=False, **kwargs):
         if self.parser is None:
-            self.auth_phrase = kwargs.pop('auth', None)
-            #: parser wide arguments (if any)
-            ap_args = kwargs.pop('args', None)
-            self.never_single = kwargs.pop('never_single', False)
-            # set some default.
+            self.auth_phrase = auth_phrase
+            self.never_single = never_single
+            formatter_class = kwargs.get(
+                'formatter_class', utils.SubcommandHelpFormatter)
             kwargs.update({
                 'conflict_handler': 'resolve',
-                'formatter_class': (
-                    kwargs.get('formatter_class') or
-                    utils.SubcommandHelpFormatter),
+                'formatter_class': formatter_class,
             })
             # create the parser
             self.parser = argparse.ArgumentParser(**kwargs)
-            # if we defined an authorization phrase set up the parametr
-            if self.auth_phrase is not None:
-                self.parser.add_argument(
-                    '--auth',
-                    help="Authorization phrase for special commands.")
-            add_output = kwargs.pop('add_output', False)
             if add_output:
                 from argparse import FileType
                 self.parser.add_argument(
                     '-o', '--output', type=FileType('wb'),
                     help="Output to file")
             # let's add parser arguments if we have them
-            if ap_args is not None:
-                for aargs, akargs in ap_args:
+            if args is not None:
+                for aargs, akargs in args:
                     self.parser.add_argument(*aargs, **akargs)
 
     def _compile(self):
         """
         Compile functions for argparsing.
         """
+        if self.auths:
+            self.parser.add_argument(
+                '--auth',
+                help="Authorization phrase for special commands.")
         if len(self.commands) == 1 and self.never_single is False:
             func = self.commands.values()[0]
             for args, kwargs in func.__arguments__:
@@ -82,19 +81,15 @@ class ArgParserInator(object):
             self.subparsers = self.parser.add_subparsers(
                 title='Comandi', dest='command',
                 description="Comandi validi per %(prog)s.")
-            for key, func in self.commands.iteritems():
+            for func in self.commands.values():
+                parser = utils.get_parser(func, self.subparsers)
                 if func.__subcommands__:
-                    sub = self.subparsers.add_subparsers(
-                        title="Sottocomandi",
-                        dest='subcommand',
-                        description='Comandi di %s' % cls.name,
-                        help=cls.__doc__)
-                else:
-                    fparser = self.subparsers.add_parser(
-                        func.__name__, help=func.__doc__,
-                        conflict_handler='resolve')
-                    for args, kwargs in func.__arguments__:
-                        fparser.add_argument(*args, **kwargs)
+                    sub_parser = parser.add_subparsers(
+                        title="Sottocomandi", dest='subcommand',
+                        description='Comandi di %s' % func.__subname__,
+                        help=func.__doc__)
+                    for sub_func in func.__subcommands__.values():
+                        utils.get_parser(sub_func, sub_parser, func)
 
     def parse_args(self):
         """
@@ -118,7 +113,7 @@ class ArgParserInator(object):
                     self.args.command)
                 return False
             elif ((auth is True and self.args.auth != self.auth_phrase) or
-                    (auth is not True and self.args.auth != auth)):
+                  (auth is not True and self.args.auth != auth)):
                 print "Autorizzazione non valida"
                 return False
         return True
@@ -190,14 +185,19 @@ def arg(*args, **kwargs):
         """
         Docora la funzione.
         """
-        ap_ = ArgParserInator()
-        if func.__name__ not in ap_.commands:
-            func.__arguments__ = []
-            func.__subcommands__ = None
-            func.__cls__ = None
-            ap_.commands[func.__name__] = func
-        if len(args) or len(kwargs):
-            func.__arguments__.append((args, kwargs,))
+        if utils.check_class() is not None:
+            arguments = utils.get_arguments(func, True)
+            if len(args):
+                arguments.append((args, kwargs))
+        elif isinstance(func, types.FunctionType):
+            ap_ = ArgParserInator()
+            if func.__name__ not in ap_.commands:
+                func.__arguments__ = []
+                func.__subcommands__ = None
+                func.__cls__ = None
+                ap_.commands[func.__name__] = func
+            if len(args) or len(kwargs):
+                func.__arguments__.append((args, kwargs,))
         return func
     return decorate
 
@@ -207,21 +207,47 @@ def class_args(cls):
     Decora una classe *preparandola* per gestire il parser di argomenti.
     """
     ap_ = ArgParserInator()
-    print "CLASSAERS!!!"
     if hasattr(cls, '__subname__'):
-        cls.__subcommands__ = {}
-        cls.__arguments__ = []
-        for name, func in cls.__dict__.iteritems():
-            arguments = utils.get_arguments(func)
-            if arguments is not None:
-                cls.__subcommands__[name] = func
-        ap_.commands[cls.__subname__] = cls
+        if cls.__subname__ not in ap_.commands:
+            cls.__subcommands__ = {}
+            utils.get_arguments(cls, True)
+            cls.__cls__ = cls
+            for name, func in cls.__dict__.iteritems():
+                arguments = utils.get_arguments(func)
+                if arguments is not None:
+                    cls.__subcommands__[name] = func
+            ap_.commands[cls.__subname__] = cls
     else:
         for name, func in cls.__dict__.iteritems():
-            arguments = utils.get_arguments(func)
-            if arguments is not None:
-                func.__cls__ = cls
-                func.__arguments__ = []
-                func.__subcommands__ = None
-                ap_.commands[name] = func
+            if name not in ap_.commands:
+                arguments = utils.get_arguments(func)
+                if arguments is not None:
+                    func.__cls__ = cls
+                    func.__subcommands__ = None
+                    ap_.commands[name] = func
     return cls
+
+
+def ap_arg(*args, **kwargs):
+    """
+    Semplice funzione per ritornare una tupla per l'add_argument del parser.
+    """
+    return args, kwargs
+
+
+def cmd_auth(auth_phrase=None):
+    """
+    Imposta l'autorizzazione per un comando o sottocomando.
+    """
+    def decorate(func):
+        """
+        Decora la funzione.
+        """
+        ap_ = ArgParserInator()
+        auth_name = id(func)
+        if auth_phrase is None:
+            ap_.auths[auth_name] = True
+        else:
+            ap_.auths[auth_name] = str(auth_phrase)
+        return func
+    return decorate

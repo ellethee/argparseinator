@@ -120,3 +120,26 @@ def get_arguments(func, create=False):
             else:
                 arguments = None
     return arguments
+
+
+def get_parser(func, parent, parent_funct=None):
+    """
+    Imposta il parser.
+    """
+    name = getattr(func, '__subname__', func.__name__)
+    if hasattr(parent, 'add_parser'):
+        parser = parent.add_parser(
+            name, help=func.__doc__,
+            # conflict_handler='resolve',
+        )
+    else:
+        parser = parent.add_subparsers(
+            name, help=func.__doc__,
+            # conflict_handler='resolve',
+        )
+    if hasattr(parent_funct, '__shared_arguments__'):
+        for args, kwargs in parent_funct.__shared_arguments__:
+            parser.add_argument(*args, **kwargs)
+    for args, kwargs in func.__arguments__:
+        parser.add_argument(*args, **kwargs)
+    return parser
