@@ -61,6 +61,11 @@ $ python apitest.py Luca
 Printing the name... Luca
 ```
 
+```
+**Note**: When we have only one fuction it automatically becomes the default.
+```
+
+
 ##ArgParseInator object.##
 __Argparseinator__(add_output=False, args=None, auth_phrase=None,
             never_single=False, **kwargs)
