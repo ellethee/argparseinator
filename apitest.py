@@ -9,78 +9,90 @@ __version__ = "1.0.0"
 __date__ = "2014-11-18"
 
 
-from argparseinator import ArgParserInator, arg, class_args, cmd_auth, ap_arg
+import argparseinator
+from argparseinator import arg, ap_arg, class_args
 
 
-AP = ArgParserInator(
-    description="Silly script",
-    #add_output=True,
-    #auth_phrase="t",
-)
-_ = AP.writeln
-
-
-@arg("name", help="Name to print")
-def print_name(args):
+@argparseinator.arg("name", help="The name to print")
+@argparseinator.arg('-s', '--surname', default='', help="optional surname")
+def print_name(name, surname, address):
     """
-    Print name.
+    Will print the passed name.
     """
-    print "Printing the name...", args.name
+    print "Printing the name...", name, surname, address
 
 
-#@arg("fliename", help="File name", nargs="*")
-#@cmd_auth()
-#def lista(args):
-#    """
-#    list files.
-#    """
-#    for fil in ('luca', 'luigi', 'filippo'):
-#        _(fil)
+@argparseinator.arg(subname="foo")
+def foo_name():
+    """
+    print foo.
+    """
+    print "foo"
 
 
-#@arg("fliename", help="File name", nargs="*")
-#@cmd_auth('luca')
-#def lista2(args):
-#    """
-#    list files.
-#    """
-#    for fil in ('luca', 'luigi', 'filippo'):
-#        AP.writeln(fil)
+@class_args
+class CommandsContainer(object):
+    """
+    CommandsContainer class.
+    """
 
+    prefix = "The name is"
+    __arguments__ = [ap_arg('--arguments', help="Class arguments")]
+    __shared_arguments__ = [
+        ap_arg('name', help="The name"),
+        ap_arg('--prefix', help="string prefix", default='We have')]
 
-#@class_args
-#class Prova(object):
-#    """
-#    Classe di prova.
-#    """
+    @arg()
+    def name(self, name, prefix):
+        """
+        Print the name.
+        """
+        print prefix, 'name', name
 
-#    @arg("name", help="Test coso")
-#    def clslist(self, args):
-#        """
-#        cls test.
-#        """
-#        AP.writeln("cls test")
+    @arg()
+    def surname(self, name, prefix):
+        """
+        Print the surname.
+        """
+        print prefix, 'surname', name
 
+    @arg()
+    def nickname(self, name, prefix):
+        """
+        Print the nickname.
+        """
+        print prefix, "nickname",  name
 
-#@class_args
-#class Prova2(object):
-#    """
-#    Classe di prova.
-#    """
-#    __subname__ = "mario"
-#    __arguments__ = [
-#        ap_arg('-j', '--jump', help="Salta il coso", action="store_true")
-#    ]
-#    __shared_arguments__ = [
-#        ap_arg('-k', '--kill', help="killa il coso", action="store_true")
-#    ]
+@class_args
+class Greetings(object):
+    """
+    Greeting command.
+    """
+    __subname__ = 'greet'
+    __arguments__ = [ap_arg(
+        '-p', '--prefix', help='greeting prefix', default="We say")]
+    __shared_arguments__ = [ap_arg('name', help='the name')]
+    
+    @arg()
+    def ciao(self, name, prefix):
+        """
+        Say ciao.
+        """
+        print prefix, 'Ciao', 'to', name
 
-#    @arg("name", help="Test coso")
-#    def clslist2(self, args):
-#        """
-#        cls test.
-#        """
-#        AP.writeln("cls test")
+    @arg()
+    def hello(self, name, prefix):
+        """
+        Say hello.
+        """
+        print prefix, 'hello', 'to', name
+    
 
 if __name__ == "__main__":
-    AP.chek_command()
+    inator = argparseinator.ArgParserInator(
+        description="Silly script",
+        args=[
+            ap_arg('--address', help='Person address', default='Home'),
+        ]
+    )
+    inator.chek_command()

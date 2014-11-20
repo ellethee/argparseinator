@@ -14,6 +14,30 @@ from argparseinator import utils
 from argparseinator import exceptions
 import sys
 import types
+import inspect
+
+
+class ArgparseinatorBase(object):
+    """
+    Classe di default per la gestione delle classi **argomentate**.
+
+    :param epsubargs: riferimento alla classe EpSubArgs di base.
+    :type epsubargs: EpSubArgs
+    """
+
+    def __init__(self, parseinator):
+        self.args = parseinator.args
+        self.write = parseinator.write
+        self.writeln = parseinator.writeln
+        self.__dict__.update(parseinator.new_attrs)
+        self.__prepare__()
+
+    def __prepare__(self):
+        """
+        Funzione di preparazione dopo l'init, da overloadare in caso di
+        utilizzo.
+        """
+        pass
 
 
 class ArgParserInator(object):
@@ -26,14 +50,17 @@ class ArgParserInator(object):
     parser = None
     _is_parsed = False
     _single = False
+    add_output = False
     never_single = False
+    formatter_class = argparse.RawTextHelpFormatter
     new_attrs = {}
+    argparse_args = {}
     # commands
     commands = {}
     # subparsers
     subparsers = None
     # parsed arguments
-    args = None
+    ap_args = None
     # authorizations
     auths = {}
     # authorization phrase
@@ -41,32 +68,28 @@ class ArgParserInator(object):
 
     def __init__(
             self, add_output=False, args=None, auth_phrase=None,
-            never_single=False, **kwargs):
-        if self.parser is None:
-            self.auth_phrase = auth_phrase
-            self.never_single = never_single
-            #formatter_class = kwargs.get(
-            #    'formatter_class', utils.SubcommandHelpFormatter)
-            kwargs.update({
-                'conflict_handler': 'resolve',
-                #'formatter_class': formatter_class,
-            })
-            # create the parser
-            self.parser = argparse.ArgumentParser(**kwargs)
-            if add_output:
-                from argparse import FileType
-                self.parser.add_argument(
-                    '-o', '--output', type=FileType('wb'),
-                    help="Output to file")
-            # let's add parser arguments if we have them
-            if args is not None:
-                for aargs, akargs in args:
-                    self.parser.add_argument(*aargs, **akargs)
+            never_single=False, formatter_class=None, **argparse_args):
+        self.auth_phrase = auth_phrase or self.auth_phrase
+        self.never_single = never_single or self.never_single
+        self.add_output = add_output or self.add_output
+        self.ap_args = args or self.ap_args
+        self.argparse_args.update(**argparse_args)
+        self.formatter_class = formatter_class or self.formatter_class
 
     def _compile(self):
         """
         Compile functions for argparsing.
         """
+        self.parser = argparse.ArgumentParser(
+            formatter_class=self.formatter_class, **self.argparse_args)
+        if self.add_output:
+            from argparse import FileType
+            self.parser.add_argument(
+                '-o', '--output', type=FileType('wb'),
+                help="Output to file")
+        if self.ap_args is not None:
+            for aargs, akargs in self.ap_args:
+                self.parser.add_argument(*aargs, **akargs)
         if self.auths:
             self.parser.add_argument(
                 '--auth',
@@ -76,6 +99,7 @@ class ArgParserInator(object):
             for args, kwargs in func.__arguments__:
                 self.parser.add_argument(*args, **kwargs)
             self._single = func
+            self.parser.description += "\n\n" + func.__doc__
         else:
             self._single = None
             self.subparsers = self.parser.add_subparsers(
@@ -140,26 +164,47 @@ class ArgParserInator(object):
             func = self.commands[self.args.command]
         # Vediamo se abbiamo un sottocomando e in caso lo impostiamo
         if func.__subcommands__ is not None:
-            subcommand = func.__subcommands__[self.args.subcommand]
+            command = func.__subcommands__[self.args.subcommand]
         # Altrimenti vediamo se abbiamo un metodo e impostiamo quello come
         # sottocomando.
         else:
-            subcommand = func
+            command = func
         # Verifichiamo l'autorizzazione.
-        if not self.check_auth(id(subcommand)):
+        if not self.check_auth(id(command)):
             return 0
-        # Se abbiamo una classe la utilizziamo per chiamare il comando
-        if func.__cls__ is not None:
-            try:
-                # Proviamo ad instanziare la classe passando self come
-                # argomento.
-                return subcommand(func.__cls__(self), self.args)
-            except TypeError:
-                # Se da un errore instaziamo la classe senza parametri.
-                return subcommand(func.__cls__(), self.args)
-        # Se non abbiamo la classe chiamiamo direttamente la funzione.
+        # let's execute the command.
+        return self._execute(func, command)
+
+    def _execute(self, func, command):
+        """
+        Execute command.
+        """
+        arg_specs = inspect.getargspec(command)
+        if arg_specs.defaults:
+            count = len(arg_specs.defaults)
+            args_names = arg_specs.args[:count]
+            kwargs_name = arg_specs.args[count:]
         else:
-            return subcommand(self.args)
+            args_names = arg_specs.args
+            kwargs_name = []
+        pargs = []
+        kwargs = {}
+        for name in args_names:
+            if name == 'args':
+                pargs.append(self.args)
+            elif name == 'self':
+                if isinstance(func.__cls__, ArgparseinatorBase):
+                    pargs.append(func.__cls__(self))
+                else:
+                    pargs.append(func.__cls__())
+            else:
+                pargs.append(getattr(self.args, name))
+        for name in kwargs_name:
+            if name == 'args':
+                kwargs[name] = self.args
+            elif name in self.args:
+                kwargs[name] = getattr(self.args, name)
+        return command(*pargs, **kwargs)
 
     def write(self, *string):
         """
@@ -191,11 +236,15 @@ def arg(*args, **kwargs):
                 arguments.append((args, kwargs))
         elif isinstance(func, types.FunctionType):
             ap_ = ArgParserInator()
-            if func.__name__ not in ap_.commands:
+            subname = kwargs.pop('subname', None)
+            if subname:
+                func.__subname__ = subname
+            name = getattr(func, '__subname__', func.__name__)
+            if name not in ap_.commands:
                 func.__arguments__ = []
                 func.__subcommands__ = None
                 func.__cls__ = None
-                ap_.commands[func.__name__] = func
+                ap_.commands[name] = func
             if len(args) or len(kwargs):
                 func.__arguments__.append((args, kwargs,))
         return func

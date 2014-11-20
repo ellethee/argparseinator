@@ -25,6 +25,8 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(
                 Singleton, cls).__call__(*args, **kwargs)
+        else:
+            cls._instances[cls].__init__(*args, **kwargs)
         return cls._instances[cls]
 
 
@@ -139,6 +141,10 @@ def get_parser(func, parent, parent_funct=None):
         )
     if hasattr(parent_funct, '__shared_arguments__'):
         for args, kwargs in parent_funct.__shared_arguments__:
+            parser.add_argument(*args, **kwargs)
+    elif func.__cls__ is not None and hasattr(
+            func.__cls__, '__shared_arguments__'):
+        for args, kwargs in func.__cls__.__shared_arguments__:
             parser.add_argument(*args, **kwargs)
     for args, kwargs in func.__arguments__:
         parser.add_argument(*args, **kwargs)
