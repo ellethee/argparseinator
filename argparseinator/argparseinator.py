@@ -16,12 +16,12 @@ import exceptions
 import utils
 
 
-class ArgParserInatorBase(object):
+class ArgParseInatorBase(object):
     """
     Classe di default per la gestione delle classi **argomentate**.
 
-    :param epsubargs: riferimento alla classe ArgParserInator di base.
-    :type epsubargs: ArgParserInator
+    :param epsubargs: riferimento alla classe ArgParseInator di base.
+    :type epsubargs: ArgParseInator
     """
 
     def __init__(self, epsubargs):
@@ -106,7 +106,7 @@ def arg(*args, **kwargs):
             if len(args):
                 options.append((args, kwargs))
         elif isinstance(func, types.FunctionType):
-            esa = ArgParserInator()
+            esa = ArgParseInator()
             if func.__name__ not in esa.commands:
                 esa.commands[func.__name__] = EteDumbObj(
                     method=func,
@@ -146,7 +146,7 @@ def cmd_auth(auth_phrase=None):
         """
         Decora la funzione.
         """
-        esa = ArgParserInator()
+        esa = ArgParseInator()
         auth_name = id(func)
         if auth_phrase is None:
             esa.auths[auth_name] = True
@@ -197,7 +197,7 @@ def class_args(cls):
         Ciao Mondo
 
     """
-    esa = ArgParserInator()
+    esa = ArgParseInator()
     if hasattr(cls, 'service'):
         esa.services.append(cls.service)
     if hasattr(cls, 'name'):

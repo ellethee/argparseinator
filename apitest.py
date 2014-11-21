@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    ArgParserInator test
+    ArgParseInator test
 """
 __file_name__ = "apitest.py"
 __author__ = "luca"
@@ -89,10 +89,10 @@ class Greetings(object):
     
 
 if __name__ == "__main__":
-    inator = argparseinator.ArgParserInator(
+    inator = argparseinator.ArgParseInator(
         description="Silly script",
         args=[
             ap_arg('--address', help='Person address', default='Home'),
         ]
     )
-    inator.chek_command()
+    inator.check_command()

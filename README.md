@@ -1,4 +1,4 @@
-#ArgParserInator#
+#ArgParseInator#
 
 Silly but funny thing that can help you to manage argparse,functions and
 classes.
@@ -36,7 +36,7 @@ ask to ArgParseInator to check_commands at script execution.
 ```
 #!python
 if __name__ == "__main__":
-    AP.chek_command()
+    AP.check_command()
 ```
 
 try your script help
@@ -91,7 +91,7 @@ plus some *personal* one.
 #####Methods
 + **parse_args** parse arguments.
 
-+ **chek_command** call parse_args if needed and then check for commands and
++ **check_command** call parse_args if needed and then check for commands and
     call the rigth function. can accepts extra attrs for further use.
 
 + **check_auth** check authorization for given command (used internally).

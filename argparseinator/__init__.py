@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    Argparseinator.
+    ArgParseInator.
     silly but funny thing thats can help you to manage argparse and functions
 """
 __file_name__ = "__init__.py"
@@ -15,24 +15,22 @@ from argparseinator import exceptions
 import sys
 import types
 import inspect
+from os import linesep
 
 
-class ArgparseinatorBase(object):
+class ArgParseInated(object):
     """
-    Classe di default per la gestione delle classi **argomentate**.
-
-    :param epsubargs: riferimento alla classe EpSubArgs di base.
-    :type epsubargs: EpSubArgs
+        Class for deriving from
     """
 
-    def __init__(self, parseinator):
+    def __init__(self, parseinator, **new_attributes):
+        self.__dict__.update(**new_attributes)
         self.args = parseinator.args
         self.write = parseinator.write
         self.writeln = parseinator.writeln
-        self.__dict__.update(parseinator.new_attrs)
-        self.__prepare__()
+        self.__preinator__()
 
-    def __prepare__(self):
+    def __preinator__(self):
         """
         Funzione di preparazione dopo l'init, da overloadare in caso di
         utilizzo.
@@ -40,9 +38,9 @@ class ArgparseinatorBase(object):
         pass
 
 
-class ArgParserInator(object):
+class ArgParseInator(object):
     """
-    ArgParserInator class.
+    ArgParseInator class.
 
     """
     __metaclass__ = utils.Singleton
@@ -53,7 +51,6 @@ class ArgParserInator(object):
     add_output = False
     never_single = False
     formatter_class = argparse.RawTextHelpFormatter
-    new_attrs = {}
     argparse_args = {}
     # commands
     commands = {}
@@ -65,16 +62,23 @@ class ArgParserInator(object):
     auths = {}
     # authorization phrase
     auth_phrase = None
+    # write name
+    write_name = "write"
+    # write line name
+    write_line_name = 'writeln'
 
     def __init__(
             self, add_output=False, args=None, auth_phrase=None,
-            never_single=False, formatter_class=None, **argparse_args):
+            never_single=False, formatter_class=None, write_name=None,
+            write_line_name=None, **argparse_args):
         self.auth_phrase = auth_phrase or self.auth_phrase
         self.never_single = never_single or self.never_single
         self.add_output = add_output or self.add_output
         self.ap_args = args or self.ap_args
         self.argparse_args.update(**argparse_args)
         self.formatter_class = formatter_class or self.formatter_class
+        self.write_name = write_name or self.write_name
+        self.write_line_name = write_line_name or self.write_line_name
 
     def _compile(self):
         """
@@ -99,7 +103,10 @@ class ArgParserInator(object):
             for args, kwargs in func.__arguments__:
                 self.parser.add_argument(*args, **kwargs)
             self._single = func
-            self.parser.description += "\n\n" + func.__doc__
+            if not self.parser.description:
+                self.parser.description = func.__doc__
+            else:
+                self.parser.description += linesep + func.__doc__
         else:
             self._single = None
             self.subparsers = self.parser.add_subparsers(
@@ -142,7 +149,7 @@ class ArgParserInator(object):
                 return False
         return True
 
-    def chek_command(self, **kwargs):
+    def check_command(self, **new_attributes):
         """
         Verifica se e' stata passata un'azione valida nella riga di comando
         e in caso positivo la esegue passando i parametri e restituiendone
@@ -154,7 +161,6 @@ class ArgParserInator(object):
         # let's parse arguments if we didn't before.
         if not self._is_parsed:
             self.parse_args()
-        self.new_attrs.update(**kwargs)
         # Recuperiamo il comando.
         if not self.commands:
             raise exceptions.ArgParseInatorNoCommandsFound
@@ -173,9 +179,9 @@ class ArgParserInator(object):
         if not self.check_auth(id(command)):
             return 0
         # let's execute the command.
-        return self._execute(func, command)
+        return self._execute(func, command, **new_attributes)
 
-    def _execute(self, func, command):
+    def _execute(self, func, command, **new_attributes):
         """
         Execute command.
         """
@@ -193,8 +199,8 @@ class ArgParserInator(object):
             if name == 'args':
                 pargs.append(self.args)
             elif name == 'self':
-                if isinstance(func.__cls__, ArgparseinatorBase):
-                    pargs.append(func.__cls__(self))
+                if ArgParseInated in inspect.getmro(func.__cls__):
+                    pargs.append(func.__cls__(self, **new_attributes))
                 else:
                     pargs.append(func.__cls__())
             else:
@@ -204,21 +210,22 @@ class ArgParserInator(object):
                 kwargs[name] = self.args
             elif name in self.args:
                 kwargs[name] = getattr(self.args, name)
+        import __builtin__
+        setattr(__builtin__, self.write_name, self.write)
+        setattr(__builtin__, self.write_line_name, self.writeln)
         return command(*pargs, **kwargs)
 
     def write(self, *string):
         """
         Scrive sull'output o sullo STDOUT.
         """
-        self._output.write(' '.join([
-            ' ' * s if isinstance(s, int) else s for s in string]))
+        self._output.write(' '.join(string))
 
     def writeln(self, *string):
         """
         Scrive una riga sull'output o sullo STDOUT.
         """
-        self._output.write(' '.join([
-            ' ' * s if isinstance(s, int) else s for s in string]) + '\n')
+        self._output.write(' '.join(string) + linesep)
 
 
 def arg(*args, **kwargs):
@@ -235,7 +242,7 @@ def arg(*args, **kwargs):
             if len(args):
                 arguments.append((args, kwargs))
         elif isinstance(func, types.FunctionType):
-            ap_ = ArgParserInator()
+            ap_ = ArgParseInator()
             subname = kwargs.pop('subname', None)
             if subname:
                 func.__subname__ = subname
@@ -255,7 +262,7 @@ def class_args(cls):
     """
     Decora una classe *preparandola* per gestire il parser di argomenti.
     """
-    ap_ = ArgParserInator()
+    ap_ = ArgParseInator()
     if hasattr(cls, '__subname__'):
         if cls.__subname__ not in ap_.commands:
             cls.__subcommands__ = {}
@@ -292,7 +299,7 @@ def cmd_auth(auth_phrase=None):
         """
         Decora la funzione.
         """
-        ap_ = ArgParserInator()
+        ap_ = ArgParseInator()
         auth_name = id(func)
         if auth_phrase is None:
             ap_.auths[auth_name] = True
