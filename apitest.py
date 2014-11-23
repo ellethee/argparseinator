@@ -22,7 +22,7 @@ def print_name(name, surname, address):
     print "Printing the name...", name, surname, address
 
 
-@argparseinator.arg(subname="foo")
+@argparseinator.arg(cmd_name="foo")
 def foo_name():
     """
     print foo.
@@ -68,7 +68,7 @@ class Greetings(object):
     """
     Greeting command.
     """
-    __subname__ = 'greet'
+    __cmd_name__ = 'greet'
     __arguments__ = [ap_arg(
         '-p', '--prefix', help='greeting prefix', default="We say")]
     __shared_arguments__ = [ap_arg('name', help='the name')]

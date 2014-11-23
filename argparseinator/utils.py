@@ -91,7 +91,7 @@ def string_or_bool(value):
     return value
 
 
-def get_arguments(func, create=False):
+def get_arguments(func, create=False, cls=None):
     """
     Ritorna le opzioni di una funzione se ci sono o None
 
@@ -102,7 +102,8 @@ def get_arguments(func, create=False):
     """
     # Se non è un tipo di funzione valido ritorno direttamente None.
     if not isinstance(func, (
-            types.FunctionType, types.MethodType, staticmethod, classmethod)):
+            types.FunctionType, types.MethodType, types.TypeType,
+            staticmethod, classmethod)):
         return None
     # Se *func* è un metodo statico le opzioni sono dentro __func__
     if isinstance(func, staticmethod):
@@ -111,6 +112,7 @@ def get_arguments(func, create=False):
         except AttributeError:
             if create:
                 arguments = func.__func__.__arguments__ = []
+                func.__func__.__cls__ = cls
             else:
                 arguments = None
     else:
@@ -119,6 +121,7 @@ def get_arguments(func, create=False):
         except AttributeError:
             if create:
                 arguments = func.__arguments__ = []
+                func.__cls__ = cls
             else:
                 arguments = None
     return arguments
@@ -128,7 +131,7 @@ def get_parser(func, parent, parent_funct=None):
     """
     Imposta il parser.
     """
-    name = getattr(func, '__subname__', func.__name__)
+    name = getattr(func, '__cmd_name__', func.__name__)
     if hasattr(parent, 'add_parser'):
         parser = parent.add_parser(
             name, help=func.__doc__,

@@ -66,15 +66,18 @@ class ArgParseInator(object):
     write_name = "write"
     # write line name
     write_line_name = 'writeln'
+    # auto_exit
+    auto_exit = False
 
     def __init__(
-            self, add_output=False, args=None, auth_phrase=None,
-            never_single=False, formatter_class=None, write_name=None,
-            write_line_name=None, **argparse_args):
+            self, add_output=None, args=None, auth_phrase=None,
+            never_single=None, formatter_class=None, write_name=None,
+            write_line_name=None, auto_exit=None, **argparse_args):
         self.auth_phrase = auth_phrase or self.auth_phrase
         self.never_single = never_single or self.never_single
         self.add_output = add_output or self.add_output
         self.ap_args = args or self.ap_args
+        self.auto_exit = auto_exit or self.auto_exit
         self.argparse_args.update(**argparse_args)
         self.formatter_class = formatter_class or self.formatter_class
         self.write_name = write_name or self.write_name
@@ -87,10 +90,8 @@ class ArgParseInator(object):
         self.parser = argparse.ArgumentParser(
             formatter_class=self.formatter_class, **self.argparse_args)
         if self.add_output:
-            from argparse import FileType
             self.parser.add_argument(
-                '-o', '--output', type=FileType('wb'),
-                help="Output to file")
+                '-o', '--output', metavar="FILE", help="Output to file")
         if self.ap_args is not None:
             for aargs, akargs in self.ap_args:
                 self.parser.add_argument(*aargs, **akargs)
@@ -99,6 +100,7 @@ class ArgParseInator(object):
                 '--auth',
                 help="Authorization phrase for special commands.")
         if len(self.commands) == 1 and self.never_single is False:
+            #import ipdb;ipdb.set_trace()
             func = self.commands.values()[0]
             for args, kwargs in func.__arguments__:
                 self.parser.add_argument(*args, **kwargs)
@@ -107,6 +109,13 @@ class ArgParseInator(object):
                 self.parser.description = func.__doc__
             else:
                 self.parser.description += linesep + func.__doc__
+            if func.__subcommands__:
+                sub_parser = self.parser.add_subparsers(
+                    title="Sottocomandi", dest='subcommand',
+                    description='Comandi di %s' % func.__cmd_name__,
+                    help=func.__doc__)
+                for sub_func in func.__subcommands__.values():
+                    utils.get_parser(sub_func, sub_parser, func)
         else:
             self._single = None
             self.subparsers = self.parser.add_subparsers(
@@ -117,7 +126,7 @@ class ArgParseInator(object):
                 if func.__subcommands__:
                     sub_parser = parser.add_subparsers(
                         title="Sottocomandi", dest='subcommand',
-                        description='Comandi di %s' % func.__subname__,
+                        description='Comandi di %s' % func.__cmd_name__,
                         help=func.__doc__)
                     for sub_func in func.__subcommands__.values():
                         utils.get_parser(sub_func, sub_parser, func)
@@ -130,7 +139,8 @@ class ArgParseInator(object):
         self.args = self.parser.parse_args()
         # set up the output.
         if 'output' in self.args and self.args.output is not None:
-            self._output = self.args.output
+            import codecs
+            self._output = codecs.open(self.args.output,'w',encoding='utf8')
         self._is_parsed = True
 
     def check_auth(self, name):
@@ -213,7 +223,10 @@ class ArgParseInator(object):
         import __builtin__
         setattr(__builtin__, self.write_name, self.write)
         setattr(__builtin__, self.write_line_name, self.writeln)
-        return command(*pargs, **kwargs)
+        if self.auto_exit:
+            self.exit(*command(*pargs, **kwargs))
+        else:
+            return command(*pargs, **kwargs)
 
     def write(self, *string):
         """
@@ -226,6 +239,12 @@ class ArgParseInator(object):
         Scrive una riga sull'output o sullo STDOUT.
         """
         self._output.write(' '.join(string) + linesep)
+
+    def exit(self, status=0, message=None):
+        """
+        Terminate the script.
+        """
+        self.parser.exit(status, message)
 
 
 def arg(*args, **kwargs):
@@ -243,10 +262,10 @@ def arg(*args, **kwargs):
                 arguments.append((args, kwargs))
         elif isinstance(func, types.FunctionType):
             ap_ = ArgParseInator()
-            subname = kwargs.pop('subname', None)
-            if subname:
-                func.__subname__ = subname
-            name = getattr(func, '__subname__', func.__name__)
+            cmd_name = kwargs.pop('cmd_name', None)
+            if cmd_name:
+                func.__cmd_name__ = cmd_name
+            name = getattr(func, '__cmd_name__', func.__name__)
             if name not in ap_.commands:
                 func.__arguments__ = []
                 func.__subcommands__ = None
@@ -263,16 +282,16 @@ def class_args(cls):
     Decora una classe *preparandola* per gestire il parser di argomenti.
     """
     ap_ = ArgParseInator()
-    if hasattr(cls, '__subname__'):
-        if cls.__subname__ not in ap_.commands:
+    if hasattr(cls, '__cmd_name__'):
+        if cls.__cmd_name__ not in ap_.commands:
             cls.__subcommands__ = {}
-            utils.get_arguments(cls, True)
+            utils.get_arguments(cls, True, cls)
             cls.__cls__ = cls
             for name, func in cls.__dict__.iteritems():
                 arguments = utils.get_arguments(func)
                 if arguments is not None:
                     cls.__subcommands__[name] = func
-            ap_.commands[cls.__subname__] = cls
+            ap_.commands[cls.__cmd_name__] = cls
     else:
         for name, func in cls.__dict__.iteritems():
             if name not in ap_.commands:
