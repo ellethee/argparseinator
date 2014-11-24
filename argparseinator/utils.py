@@ -13,6 +13,13 @@ import inspect
 import os
 import glob
 import types
+import sys
+import gettext
+
+COMMANDS_LIST_TITLE = "Commands"
+COMMANDS_LIST_DESCRIPTION = "Commands for %(prog)s"
+SUBCOMMANDS_LIST_TITLE = "Sub Commands"
+SUBCOMMANDS_LIST_DESCRIPTION = "Sub commands for {}"
 
 
 class Singleton(type):
@@ -102,8 +109,7 @@ def get_arguments(func, create=False, cls=None):
     """
     # Se non è un tipo di funzione valido ritorno direttamente None.
     if not isinstance(func, (
-            types.FunctionType, types.MethodType, types.TypeType,
-            staticmethod, classmethod)):
+            types.FunctionType, types.MethodType, staticmethod, classmethod)):
         return None
     # Se *func* è un metodo statico le opzioni sono dentro __func__
     if isinstance(func, staticmethod):
@@ -152,3 +158,26 @@ def get_parser(func, parent, parent_funct=None):
     for args, kwargs in func.__arguments__:
         parser.add_argument(*args, **kwargs)
     return parser
+
+
+def set_subcommands(func, parser):
+    """
+    Set subcommands.
+    """
+    if func.__subcommands__:
+        sub_parser = parser.add_subparsers(
+            title=_(SUBCOMMANDS_LIST_TITLE), dest='subcommand',
+            description=_(SUBCOMMANDS_LIST_DESCRIPTION.format(
+                func.__cmd_name__)),
+            help=_(func.__doc__))
+        for sub_func in func.__subcommands__.values():
+            get_parser(sub_func, sub_parser, func)
+
+
+def check_help():
+    """
+    check know args in argv.
+    """
+    know = set(('-h', '--help', '-v', '--version'))
+    args = set(sys.argv[1:])
+    return len(know.intersection(args)) > 0

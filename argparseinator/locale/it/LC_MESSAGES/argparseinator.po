@@ -1,0 +1,47 @@
+# Argparseinator
+# Copyright (C) 2014 
+# This file is distributed under the same license as the ArgParseInator package.
+# ellethee <luca800@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.2.3\n"
+"Report-Msgid-Bugs-To: luca800@gmail.com\n"
+"POT-Creation-Date: 2014-11-24 15:49+0100\n"
+"PO-Revision-Date: 2014-11-24 17:46+0100\n"
+"Last-Translator: ellethee <luca800@gmail.com>\n"
+"Language-Team: Italiano <luca800@gmail.com>\n"
+"Language: Italian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 2.91.6\n"
+
+#: argparseinator/exceptions.py:29
+msgid "Invalid command"
+msgstr "Comando non valido"
+
+#: argparseinator/exceptions.py:36
+msgid "No commands found"
+msgstr "Nessun comando trovato"
+
+#: argparseinator/exceptions.py:43
+msgid "Authorization required"
+msgstr "Autorizzazione richiesta"
+
+#: argparseinator/exceptions.py:50
+msgid "Not valid authorization"
+msgstr "Autorizzazione non valida"
+
+msgid "Commands"
+msgstr "Comandi"
+
+msgid "Commands for %(prog)s"
+msgstr "Comandi per %(prog)s"
+
+msgid "Sub Commands"
+msgstr "Sottocomandi"
+
+msgid "Sub commands for {}"
+msgstr "Sottocomandi per {}"

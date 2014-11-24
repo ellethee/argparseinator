@@ -4,7 +4,8 @@ ArgParseInator object
 
 .. class:: ArgParseInator(add_output=None, args=None, auth_phrase=None, \
                            never_single=None , write_name=None, \
-                           write_line_name=None, auto_exit=None, \**kwargs)
+                           write_line_name=None, auto_exit=None, \
+                           default_cmd=None, \**kwargs)
 
    Create a new :class:`ArgParseInator` object. All parameters should be passed
    as keyword arguments. 
@@ -26,6 +27,8 @@ ArgParseInator object
 
    * auto_exit_ - if True ArgParseInator exits just executed the command 
      using the returned value(s) as status code
+
+   * default_cmd_ - Name of the default command to set.
 
    * kwargs_ - All standard :class:`ArgumentParser` parameters.
 
@@ -184,6 +187,11 @@ and string value the string will be printed as message.
         # will exit from script with status code 2 and print the message
         # "Error"
         return 2, "Error."
+
+default_cmd
+-------------
+When we have multiple commands we can set a default one wich will be used
+if :class:`ArgParseInator` can't find a valid command in ``sys.argv``
 
 
 kwargs

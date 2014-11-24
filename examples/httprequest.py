@@ -33,5 +33,6 @@ def post(url, var):
 if __name__ == "__main__":
     ArgParseInator(
         description="Simple http retrieving",
-        add_output=True
+        add_output=True,
+        default_cmd="get",
     ).check_command()

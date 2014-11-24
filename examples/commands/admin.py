@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    Administation commands for multi commands.
+    Administation commands for multi commands example.
 """
 from argparseinator import class_args, arg, cmd_auth, ArgParseInated
 

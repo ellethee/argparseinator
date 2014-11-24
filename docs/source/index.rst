@@ -12,11 +12,11 @@ and classes with the use of some decorators.
 Contents:
 
 .. toctree::
-   :maxdepth: 2
-    
-   getting_started
-   argparseinator
-   argparseinated
-   decorators
-   within_classes
-   examples
+    :maxdepth: 2
+
+    getting_started
+    argparseinator
+    argparseinated
+    decorators
+    within_classes
+    examples
