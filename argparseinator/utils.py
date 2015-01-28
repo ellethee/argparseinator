@@ -98,6 +98,33 @@ def string_or_bool(value):
     return value
 
 
+def get_functarguments(func):
+    """
+    Recupera gli argomenti dalla funzione stessa.
+    """
+    argspec = inspect.getargspec(func)
+    args = argspec.args[:-len(argspec.defaults)]
+    kwargs = dict(zip(argspec.args[-len(argspec.defaults):], argspec.defaults))
+    func.__named__ = []
+    arguments = []
+    for arg in args:
+        arguments.append(([arg], {}, ))
+        func.__named__.append(arg)
+    for key, val in kwargs.iteritems():
+        if isinstance(val, dict):
+            flags = [val.pop('lflag', '--%s' % key)]
+            short = val.pop('flag', None)
+            val['dest'] = key
+            if short:
+                flags.insert(0, short)
+        else:
+            flags = ['--%s' % key]
+            val = dict(default=val)
+        func.__named__.append(flags[0])
+        arguments.append((flags, val, ))
+    return arguments
+
+
 def get_arguments(func, create=False, cls=None):
     """
     Ritorna le opzioni di una funzione se ci sono o None
@@ -117,7 +144,8 @@ def get_arguments(func, create=False, cls=None):
             arguments = func.__func__.__arguments__
         except AttributeError:
             if create:
-                arguments = func.__func__.__arguments__ = []
+                arguments = func.__func__.__arguments__ = get_functarguments(
+                    func.__func__)
                 func.__func__.__cls__ = cls
             else:
                 arguments = None
@@ -126,7 +154,7 @@ def get_arguments(func, create=False, cls=None):
             arguments = func.__arguments__
         except AttributeError:
             if create:
-                arguments = func.__arguments__ = []
+                arguments = func.__arguments__ = get_functarguments(func)
                 func.__cls__ = cls
             else:
                 arguments = None

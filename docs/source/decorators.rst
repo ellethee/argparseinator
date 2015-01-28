@@ -36,9 +36,29 @@ Add arguments to a function (**@arg**)
 Or just enable the function as ArgParseInator command if no parameters are
 passed.
 
+If no parameters are passed to **@arg** and there are function arguments they
+become the command arguments and optional arguments. for optional arguments
+all the options can be specify using a dictionary.
+
+
 ArgParseInator will use the *function* **name** as command name unless
 you pass the special param **cmd_name** that can change the the command name
 for the funcion.
+
+
+Create a ArgParseInator command **with** parameters using the function
+arguments.
+
+.. code-block:: python
+
+    @arg()
+    def save(filename, overwrite={'action': 'store_true', 'default':False},
+             path={'short': '-p', 'help': "the file path", 'default': ""}):
+        """
+        A Save Function.
+        """
+        ...
+
 
 
 Create a ArgParseInator command **with** parameters.

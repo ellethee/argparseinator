@@ -281,12 +281,20 @@ def arg(*args, **kwargs):
         elif isinstance(func, types.FunctionType):
             ap_ = ArgParseInator()
             if func.__cmd_name__ not in ap_.commands:
-                func.__arguments__ = []
+                func.__arguments__ = utils.get_functarguments(func)
                 func.__subcommands__ = None
                 func.__cls__ = None
                 ap_.commands[func.__cmd_name__] = func
             if len(args) or len(kwargs):
-                func.__arguments__.append((args, kwargs,))
+                idx = None
+                try:
+                    idx = func.__named__.index(args[-1])
+                except IndexError:
+                    pass
+                if idx is not None:
+                    func.__arguments__[idx] = (args, kwargs,)
+                else:
+                    func.__arguments__.append((args, kwargs,))
         return func
     return decorate
 
