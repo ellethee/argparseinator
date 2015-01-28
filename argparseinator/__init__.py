@@ -228,7 +228,10 @@ class ArgParseInator(object):
                 kwargs[name] = self.args
             elif name in self.args:
                 kwargs[name] = getattr(self.args, name)
-        import __builtin__
+        try:
+            import __builtin__
+        except ImportError:
+            import builtins as __builtin__
         setattr(__builtin__, self.write_name, self.write)
         setattr(__builtin__, self.write_line_name, self.writeln)
         retval = command(*pargs, **kwargs)
@@ -310,13 +313,13 @@ def class_args(cls):
             cls.__arguments__ = []
             utils.get_arguments(cls, True, cls)
             cls.__cls__ = cls
-            for name, func in cls.__dict__.iteritems():
+            for name, func in cls.__dict__.items():
                 arguments = utils.get_arguments(func)
                 if arguments is not None:
                     cls.__subcommands__[name] = func
             ap_.commands[cls.__cmd_name__] = cls
     else:
-        for name, func in cls.__dict__.iteritems():
+        for name, func in cls.__dict__.items():
             if name not in ap_.commands:
                 arguments = utils.get_arguments(func)
                 if arguments is not None:
@@ -363,4 +366,4 @@ def import_commands(commands_folder):
         try:
             importlib.import_module("{}.{}".format(commands, mod_name))
         except ImportError as err:
-            print err
+            print (err)

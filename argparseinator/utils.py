@@ -112,7 +112,7 @@ def get_functarguments(func):
     for arg in args:
         arguments.append(([arg], {}, ))
         func.__named__.append(arg)
-    for key, val in kwargs.iteritems():
+    for key, val in kwargs.items():
         if isinstance(val, dict):
             flags = [val.pop('lflag', '--%s' % key)]
             short = val.pop('flag', None)
