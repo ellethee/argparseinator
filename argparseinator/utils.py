@@ -104,6 +104,8 @@ def get_functarguments(func):
     """
     argspec = inspect.getargspec(func)
     args = argspec.args[:-len(argspec.defaults)]
+    if args[0] == 'self':
+        args.pop(0)
     kwargs = dict(zip(argspec.args[-len(argspec.defaults):], argspec.defaults))
     func.__named__ = []
     arguments = []
