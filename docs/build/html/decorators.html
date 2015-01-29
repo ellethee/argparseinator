@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Decorators and Function declarations &mdash; ArgParseInator 1.2.3 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ArgParseInator 1.2.3 documentation" href="index.html"/>
+        <link rel="next" title="Within classes" href="within_classes.html"/>
+        <link rel="prev" title="ArgParseInated object" href="argparseinated.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> ArgParseInator</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="argparseinator.html">ArgParseInator object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="argparseinator.html#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="argparseinator.html#methods">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="argparseinator.html#write-and-writeln"><tt class="docutils literal"><span class="pre">write()</span></tt> and <tt class="docutils literal"><span class="pre">writeln()</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="argparseinated.html">ArgParseInated object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="argparseinated.html#preinator">__preinator__</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Decorators and Function declarations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#add-arguments-to-parser-ap-arg">Add arguments to parser (<strong>ap_arg</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#add-arguments-to-a-function-arg">Add arguments to a function (<strong>&#64;arg</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#enable-classes-class-args">Enable classes (<strong>&#64;class_args</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authorize-commands-cmd-auth">Authorize commands (<strong>&#64;cmd_auth</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#function-declarations">Function declarations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="within_classes.html">Within classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#first-way-commands-container">First way (commands container)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#second-way-sub-commands-container">Second way (sub-commands container)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#shared-arguments">Shared arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#sub-commads-container-and-command-arguments">Sub-commads container and command arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Some examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#simple-http-requests">Simple http requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#simple-http-requests-subclassing-argparseinated-object">Simple http requests subclassing <tt class="docutils literal"><span class="pre">ArgParseInated</span></tt> object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#modular-multi-commands-script-with-sub-commands">Modular multi-commands script with sub-commands</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ArgParseInator</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Decorators and Function declarations</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/decorators.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="decorators-and-function-declarations">
+<h1>Decorators and Function declarations<a class="headerlink" href="#decorators-and-function-declarations" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="#ap-arg"><em>Add arguments to parser (ap_arg)</em></a></li>
+<li><a class="reference internal" href="#arg"><em>Add arguments to a function (&#64;arg)</em></a></li>
+<li><a class="reference internal" href="#enable-class"><em>Enable classes (&#64;class_args)</em></a></li>
+<li><a class="reference internal" href="#authorize-commands"><em>Authorize commands (&#64;cmd_auth)</em></a></li>
+<li><a class="reference internal" href="#func-dec"><em>Function declarations</em></a></li>
+<li><a class="reference internal" href="within_classes.html#class-dec"><em>Within classes</em></a></li>
+</ul>
+<div class="section" id="add-arguments-to-parser-ap-arg">
+<span id="ap-arg"></span><h2>Add arguments to parser (<strong>ap_arg</strong>)<a class="headerlink" href="#add-arguments-to-parser-ap-arg" title="Permalink to this headline">¶</a></h2>
+<p><strong>ap_arg</strong> is not a decorator, but a silly convenience function that returns
+a tuple with positional arguments and keyword arguments.
+Useful to pass list of arguments to the parsers.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">inator</span> <span class="o">=</span> <span class="n">ArgParseInator</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">ap_arg</span><span class="p">(</span><span class="s">&#39;-O&#39;</span><span class="p">,</span> <span class="s">&#39;--option&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;Optional parameter&quot;</span><span class="p">)</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="add-arguments-to-a-function-arg">
+<span id="arg"></span><h2>Add arguments to a function (<strong>&#64;arg</strong>)<a class="headerlink" href="#add-arguments-to-a-function-arg" title="Permalink to this headline">¶</a></h2>
+<p><strong>&#64;arg</strong> adds arguments to function in <em>ArgumentParser.add_argument</em> style.
+Or just enable the function as ArgParseInator command if no parameters are
+passed.</p>
+<p>If no parameters are passed to <strong>&#64;arg</strong> and there are function arguments they
+become the command arguments and optional arguments. for optional arguments
+all the options can be specify using a dictionary.</p>
+<p>ArgParseInator will use the <em>function</em> <strong>name</strong> as command name unless
+you pass the special param <strong>cmd_name</strong> that can change the the command name
+for the funcion.</p>
+<p>Create a ArgParseInator command <strong>with</strong> parameters using the function
+arguments.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;action&#39;</span><span class="p">:</span> <span class="s">&#39;store_true&#39;</span><span class="p">,</span> <span class="s">&#39;default&#39;</span><span class="p">:</span><span class="bp">False</span><span class="p">},</span>
+         <span class="n">path</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;short&#39;</span><span class="p">:</span> <span class="s">&#39;-p&#39;</span><span class="p">,</span> <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&quot;the file path&quot;</span><span class="p">,</span> <span class="s">&#39;default&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Save Function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Create a ArgParseInator command <strong>with</strong> parameters.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;filename&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;the file name&quot;</span><span class="p">)</span>
+<span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;-p&#39;</span><span class="p">,</span> <span class="s">&#39;--path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;the file path&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;--overwrite&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;overwrite the file&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A save function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Create a ArgParseInator command <strong>without</strong> parameters.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">foo_print</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Foo!!!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Create a ArgParseInator command <strong>without</strong> parameters and the command name
+will be <strong>foo</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">(</span><span class="n">cmd_name</span><span class="o">=</span><span class="s">&quot;foo&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">foo_print</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Foo!!!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="enable-classes-class-args">
+<span id="enable-class"></span><h2>Enable classes (<strong>&#64;class_args</strong>)<a class="headerlink" href="#enable-classes-class-args" title="Permalink to this headline">¶</a></h2>
+<p>We can enable classes to become commands container simply adding a
+<strong>&#64;class_args</strong> decorator to the classes.</p>
+<p>Once the class is enabled we can specify some class attributes that will
+modify the commands behavior:</p>
+<ul class="simple">
+<li><strong>__cmd_name__</strong> set the command name</li>
+<li><strong>__arguments__</strong> set extra arguments for the command.</li>
+<li><strong>__shared_arguments__</strong> set arguments which will be shared by the class
+subcommands</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@class_args</span>
+<span class="k">class</span> <span class="nc">Greetings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Greeting command.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__cmd_name__</span> <span class="o">=</span> <span class="s">&#39;greet&#39;</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>We will discuss the classes usage in the <a class="reference internal" href="within_classes.html#class-dec"><em>Within classes</em></a> section.</p>
+</div>
+<div class="section" id="authorize-commands-cmd-auth">
+<span id="authorize-commands"></span><h2>Authorize commands (<strong>&#64;cmd_auth</strong>)<a class="headerlink" href="#authorize-commands-cmd-auth" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes our scripts can be potentially dangerous.
+So we would like to protect some commands with a <em>auth phrase</em>.</p>
+<p>And here comes the <strong>&#64;cmd_auth</strong> decorator.
+We can pass the <strong>auth_phrase</strong> parameter which will be used to check the
+autorization for the command or call il without the parameter, in this case it
+will use the global <a class="reference internal" href="argparseinator.html#auth-phrase"><em>auth_phrase</em></a> passed to the ArgParseInator instance.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># with global auth_phrase</span>
+<span class="nd">@arg</span><span class="p">()</span>
+<span class="nd">@cmd_auth</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">deleteall</span><span class="p">():</span>
+    <span class="o">...</span>
+
+<span class="c"># with command specific auth_phrase</span>
+<span class="nd">@arg</span><span class="p">()</span>
+<span class="nd">@cmd_auth</span><span class="p">(</span><span class="s">&#39;im-sure&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">deleteall</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><strong>&#64;cmd_auth</strong> automatically adds the <strong>&#8211;auth</strong> optional argument to the
+top level parser.</p>
+</div>
+</div>
+<div class="section" id="function-declarations">
+<span id="func-dec"></span><h2>Function declarations<a class="headerlink" href="#function-declarations" title="Permalink to this headline">¶</a></h2>
+<p>When we declare a function that will then be decorated, we can use both types
+of parameters, positional and keyword. However, considering that the optional
+parameters are declared with the decorator, we can declare all parameters as
+positional without caring about the order.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;The name&quot;</span><span class="p">)</span>
+<span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;-s&#39;</span><span class="p">,</span> <span class="s">&#39;--surname&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;The surname&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">print_name</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">surname</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>is the same as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;The name&quot;</span><span class="p">)</span>
+<span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;-s&#39;</span><span class="p">,</span> <span class="s">&#39;--surname&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;The surname&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">print_name</span><span class="p">(</span><span class="n">surname</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>We can also refer to an argument declared in the top level parser or into the
+parent of the function (if it is inside a class).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">print_foo</span><span class="p">(</span><span class="n">foo</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="c"># We istantiate che class with a foo top level optional parameter.</span>
+<span class="n">inator</span> <span class="o">=</span> <span class="n">ArgParseInator</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">ap_arg</span><span class="p">(</span><span class="s">&#39;--foo&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;Foo&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&quot;bar&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>Last but not least the special parameter args.
+If ArgParseInator find it in the function declaration will assign to it the
+parse_args result.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;the name&quot;</span><span class="p">)</span>
+<span class="nd">@arg</span><span class="p">(</span><span class="s">&#39;--surname&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;the surname&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">print_args</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">args</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">surname</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">foo</span>
+</pre></div>
+</div>
+<p>This can be useful if you don&#8217;t know exactly what parameters you need or if
+you are lazy enough (like me) to avoid typing all the parameters in the
+function declaration.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="within_classes.html" class="btn btn-neutral float-right" title="Within classes"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="argparseinated.html" class="btn btn-neutral" title="ArgParseInated object"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, ellethee.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.2.3',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

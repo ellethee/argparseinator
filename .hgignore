@@ -1,5 +1,5 @@
 syntax: glob
 
-docs/build
+#docs/build
 examples/argparseinator
 *.mo

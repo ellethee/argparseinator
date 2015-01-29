@@ -1,0 +1,249 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ArgParseInated object &mdash; ArgParseInator 1.2.3 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ArgParseInator 1.2.3 documentation" href="index.html"/>
+        <link rel="next" title="Decorators and Function declarations" href="decorators.html"/>
+        <link rel="prev" title="ArgParseInator object" href="argparseinator.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> ArgParseInator</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="argparseinator.html">ArgParseInator object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="argparseinator.html#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="argparseinator.html#methods">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="argparseinator.html#write-and-writeln"><tt class="docutils literal"><span class="pre">write()</span></tt> and <tt class="docutils literal"><span class="pre">writeln()</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">ArgParseInated object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#preinator">__preinator__</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="decorators.html">Decorators and Function declarations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="decorators.html#add-arguments-to-parser-ap-arg">Add arguments to parser (<strong>ap_arg</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decorators.html#add-arguments-to-a-function-arg">Add arguments to a function (<strong>&#64;arg</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decorators.html#enable-classes-class-args">Enable classes (<strong>&#64;class_args</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decorators.html#authorize-commands-cmd-auth">Authorize commands (<strong>&#64;cmd_auth</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decorators.html#function-declarations">Function declarations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="within_classes.html">Within classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#first-way-commands-container">First way (commands container)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#second-way-sub-commands-container">Second way (sub-commands container)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#shared-arguments">Shared arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="within_classes.html#sub-commads-container-and-command-arguments">Sub-commads container and command arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Some examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#simple-http-requests">Simple http requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#simple-http-requests-subclassing-argparseinated-object">Simple http requests subclassing <tt class="docutils literal"><span class="pre">ArgParseInated</span></tt> object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#modular-multi-commands-script-with-sub-commands">Modular multi-commands script with sub-commands</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ArgParseInator</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>ArgParseInated object</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/argparseinated.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="argparseinated-object">
+<h1>ArgParseInated object<a class="headerlink" href="#argparseinated-object" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="ArgParseInated">
+<em class="property">class </em><tt class="descname">ArgParseInated</tt><big>(</big><em>parseinator</em>, <em>**new_attributes</em><big>)</big><a class="headerlink" href="#ArgParseInated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This class is intended to be subclassed and automatically expose the
+<tt class="xref py py-meth docutils literal"><span class="pre">write()</span></tt>, <tt class="xref py py-meth docutils literal"><span class="pre">writeln()</span></tt> methods and the <tt class="xref py py-attr docutils literal"><span class="pre">args</span></tt> attribute of the
+<a class="reference internal" href="argparseinator.html#ArgParseInator" title="ArgParseInator"><tt class="xref py py-class docutils literal"><span class="pre">ArgParseInator</span></tt></a>. Plus expose all passed <strong>new_attributes</strong> which will
+passed by the <a class="reference internal" href="argparseinator.html#ArgParseInator.check_command" title="ArgParseInator.check_command"><tt class="xref py py-meth docutils literal"><span class="pre">ArgParseInator.check_command()</span></tt></a>.
+It has also the <a class="reference internal" href="#preinator"><em>__preinator__</em></a> method which is called just at the
+__init__ end.
+So we can use it to do some extra action before the command is execute.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Greetings</span><span class="p">(</span><span class="n">ArgParseInated</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Greet somebody.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@arg</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">ciao</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        say ciao.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="s">&quot;ciao to&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="n">ArgParseInator</span><span class="p">()</span><span class="o">.</span><span class="n">check_command</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&quot;We say&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;Luca&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="preinator">
+<span id="id1"></span><h2>__preinator__<a class="headerlink" href="#preinator" title="Permalink to this headline">¶</a></h2>
+<p>The original name was <strong>__prepare__</strong> but i&#8217;ve changed it to avoid problems.
+It&#8217;s just called at the end of the <tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt> method and is intended to
+do some action before <a class="reference internal" href="argparseinator.html#ArgParseInator" title="ArgParseInator"><tt class="xref py py-class docutils literal"><span class="pre">ArgParseInator</span></tt></a> executes the command.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Greetings</span><span class="p">(</span><span class="n">ArgParseInated</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Greet somebody.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@arg</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;The name&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">ciao</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        say ciao.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s">&quot;We say ciao to&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__preinator__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;luca&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;who? nobody?&quot;</span>
+
+<span class="n">ArgParseInator</span><span class="p">()</span><span class="o">.</span><span class="n">check_command</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="decorators.html" class="btn btn-neutral float-right" title="Decorators and Function declarations"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="argparseinator.html" class="btn btn-neutral" title="ArgParseInator object"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, ellethee.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.2.3',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
