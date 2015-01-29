@@ -1,1 +1,1 @@
-.. include:: docs/source/index.rst
+[ArgParseInator](http://argparserinator.readthedocs.org/it/latest/)
