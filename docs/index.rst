@@ -14,7 +14,6 @@ Contents:
 .. toctree::
     :maxdepth: 2
 
-    source/index
     source/getting_started
     source/argparseinator
     source/argparseinated
