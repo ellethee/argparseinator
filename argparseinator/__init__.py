@@ -6,7 +6,7 @@
 """
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __date__ = "2014-10-23"
 
 from gettext import gettext as _
@@ -74,12 +74,13 @@ class ArgParseInator(object):
     auto_exit = False
     cmd_name = None
     default_cmd = None
+    setup = []
 
     def __init__(
             self, add_output=None, args=None, auth_phrase=None,
             never_single=None, formatter_class=None, write_name=None,
             write_line_name=None, auto_exit=None, default_cmd=None,
-            **argparse_args):
+            setup=None, **argparse_args):
         self.auth_phrase = auth_phrase or self.auth_phrase
         self.never_single = never_single or self.never_single
         self.add_output = add_output or self.add_output
@@ -90,6 +91,7 @@ class ArgParseInator(object):
         self.write_name = write_name or self.write_name
         self.write_line_name = write_line_name or self.write_line_name
         self.default_cmd = default_cmd or self.default_cmd
+        self.setup = setup or self.setup
 
     def _compile(self):
         """
@@ -183,6 +185,8 @@ class ArgParseInator(object):
         elif self._single:
             func = self._single
         else:
+            if not self.args.command:
+                self.parser.error("too few arguments")
             func = self.commands[self.args.command]
 
         # Vediamo se abbiamo un sottocomando e in caso lo impostiamo
@@ -196,6 +200,9 @@ class ArgParseInator(object):
         # Verifichiamo l'autorizzazione.
         if not self.check_auth(id(command)):
             return 0
+        # let's setup something.
+        for setup_func in self.setup:
+            setup_func(self)
         # let's execute the command.
         return self._execute(func, command, **new_attributes)
 
@@ -278,9 +285,18 @@ def arg(*args, **kwargs):
         """
         func.__cmd_name__ = kwargs.pop('cmd_name', func.__name__)
         if utils.check_class() is not None:
-            arguments = utils.get_arguments(func, True)
-            if len(args):
-                arguments.append((args, kwargs))
+            func.__arguments__ = utils.get_arguments(func, True)
+            if len(args) or len(kwargs):
+                idx = None
+                try:
+                    idx = func.__named__.index(args[-1])
+                except IndexError:
+                    pass
+                if idx is not None:
+                    func.__arguments__[idx] = (args, kwargs,)
+                else:
+                    func.__arguments__.append((args, kwargs,))
+                # arguments.append((args, kwargs))
         elif isinstance(func, types.FunctionType):
             ap_ = ArgParseInator()
             if func.__cmd_name__ not in ap_.commands:

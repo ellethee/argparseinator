@@ -103,10 +103,15 @@ def get_functarguments(func):
     Recupera gli argomenti dalla funzione stessa.
     """
     argspec = inspect.getargspec(func)
-    args = argspec.args[:-len(argspec.defaults)]
+    if argspec.defaults is not None:
+        args = argspec.args[:-len(argspec.defaults)]
+        kwargs = dict(
+            zip(argspec.args[-len(argspec.defaults):], argspec.defaults))
+    else:
+        args = argspec.args
+        kwargs = {}
     if args[0] == 'self':
         args.pop(0)
-    kwargs = dict(zip(argspec.args[-len(argspec.defaults):], argspec.defaults))
     func.__named__ = []
     arguments = []
     for arg in args:
