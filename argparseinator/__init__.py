@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
     ArgParseInator.
@@ -25,6 +24,8 @@ class ArgParseInated(object):
     """
         Class for deriving from
     """
+    __shared_arguments__ = []
+    __arguments__ = []
 
     def __init__(self, parseinator, **new_attributes):
         self.__dict__.update(**new_attributes)
@@ -284,13 +285,14 @@ def arg(*args, **kwargs):
         Docora la funzione.
         """
         func.__cmd_name__ = kwargs.pop('cmd_name', func.__name__)
-        if utils.check_class() is not None:
-            func.__arguments__ = utils.get_arguments(func, True)
+        cls = utils.check_class()
+        if cls is not None:
+            func.__arguments__ = utils.get_arguments(func, True, cls)
             if len(args) or len(kwargs):
                 idx = None
                 try:
                     idx = func.__named__.index(args[-1])
-                except IndexError:
+                except ValueError:
                     pass
                 if idx is not None:
                     func.__arguments__[idx] = (args, kwargs,)

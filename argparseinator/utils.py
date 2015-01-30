@@ -14,12 +14,19 @@ import os
 import glob
 import types
 import sys
-import gettext
 
 COMMANDS_LIST_TITLE = "Commands"
 COMMANDS_LIST_DESCRIPTION = "Commands for %(prog)s"
 SUBCOMMANDS_LIST_TITLE = "Sub Commands"
 SUBCOMMANDS_LIST_DESCRIPTION = "Sub commands for {}"
+
+
+class SillyClass(object):
+    """
+    SIlly class.
+    """
+    def __init__(self, **kwargs):
+        self.__dict__.update(**kwargs)
 
 
 class Singleton(type):
@@ -54,15 +61,16 @@ def check_class():
     Se il risultato è **None** vuol dire che la chiamata è fatta da un modulo.
     """
     frames = inspect.stack()
-    class_name = None
+    cls = None
     for frame in frames[1:]:
         if frame[3] == "<module>":
             # At module level, go no further
             break
         elif '__module__' in frame[0].f_code.co_names:
-            class_name = frame[0].f_code.co_name
+            cls = SillyClass(**frame[0].f_locals)
+            cls.__cls_name__ = frame[0].f_code.co_name
             break
-    return class_name
+    return cls
 
 
 def isglob(value):
@@ -98,6 +106,19 @@ def string_or_bool(value):
     return value
 
 
+def has_shared(arg, cls):
+    """
+    Verifica se ci sono shared.
+    """
+    try:
+        idx = [
+            n[0][-1].replace('--', '')
+            for n in cls.__shared_arguments__].index(arg)
+    except:
+        idx = False
+    return idx
+
+
 def get_functarguments(func):
     """
     Recupera gli argomenti dalla funzione stessa.
@@ -115,9 +136,13 @@ def get_functarguments(func):
     func.__named__ = []
     arguments = []
     for arg in args:
+        if has_shared(arg, func.__cls__) is not False:
+            continue
         arguments.append(([arg], {}, ))
         func.__named__.append(arg)
     for key, val in kwargs.items():
+        if has_shared(key, func.__cls__) is not False:
+            continue
         if isinstance(val, dict):
             flags = [val.pop('lflag', '--%s' % key)]
             short = val.pop('flag', None)
@@ -151,9 +176,9 @@ def get_arguments(func, create=False, cls=None):
             arguments = func.__func__.__arguments__
         except AttributeError:
             if create:
+                func.__func__.__cls__ = cls
                 arguments = func.__func__.__arguments__ = get_functarguments(
                     func.__func__)
-                func.__func__.__cls__ = cls
             else:
                 arguments = None
     else:
@@ -161,8 +186,8 @@ def get_arguments(func, create=False, cls=None):
             arguments = func.__arguments__
         except AttributeError:
             if create:
-                arguments = func.__arguments__ = get_functarguments(func)
                 func.__cls__ = cls
+                arguments = func.__arguments__ = get_functarguments(func)
             else:
                 arguments = None
     return arguments
@@ -201,10 +226,10 @@ def set_subcommands(func, parser):
     """
     if func.__subcommands__:
         sub_parser = parser.add_subparsers(
-            title=_(SUBCOMMANDS_LIST_TITLE), dest='subcommand',
-            description=_(SUBCOMMANDS_LIST_DESCRIPTION.format(
+            title=(SUBCOMMANDS_LIST_TITLE), dest='subcommand',
+            description=(SUBCOMMANDS_LIST_DESCRIPTION.format(
                 func.__cmd_name__)),
-            help=_(func.__doc__))
+            help=(func.__doc__))
         for sub_func in func.__subcommands__.values():
             get_parser(sub_func, sub_parser, func)
 
