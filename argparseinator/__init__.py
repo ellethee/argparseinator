@@ -5,7 +5,7 @@
 """
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __date__ = "2014-10-23"
 
 from gettext import gettext as _
@@ -87,6 +87,11 @@ class ArgParseInator(object):
         self.add_output = add_output or self.add_output
         self.ap_args = args or self.ap_args
         self.auto_exit = auto_exit or self.auto_exit
+        mod = sys.modules['__main__']
+        if 'version' not in argparse_args:
+            argparse_args['version'] = "%(prog)s " + mod.__version__
+        if 'description' not in argparse_args:
+            argparse_args['description'] = mod.__doc__
         self.argparse_args.update(**argparse_args)
         self.formatter_class = formatter_class or self.formatter_class
         self.write_name = write_name or self.write_name
