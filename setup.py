@@ -35,18 +35,13 @@ def find_version(*file_paths):
 
 
 # Get the long description from the relevant file
-# with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
-    # long_description = f.read()
-long_description = """
-Argparseinator is a silly, but useful, thing that permit you to easily
-add argparse‘s arguments and options to your script directly within
-functions and classes with the use of some decorators.
-"""
+with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
+    LONG_DESCRIPTION = f.read()
 setup(
     name='ArgParseInator',
     version=find_version('argparseinator/__init__.py'),
     description='A silly class to semplify ArgumentParser.',
-    long_description=long_description,
+    long_description=LONG_DESCRIPTION,
     url="https://bitbucket.org/ellethee/argparseinator/overview",
     author='ellethee',
     author_email='luca800@gmail.com',

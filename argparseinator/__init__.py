@@ -5,7 +5,7 @@
 """
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __date__ = "2014-10-23"
 
 from gettext import gettext as _

@@ -136,7 +136,8 @@ def get_functarguments(func):
     func.__named__ = []
     arguments = []
     for arg in args:
-        if has_shared(arg, func.__cls__) is not False:
+        if hasattr(func, '__cls__') and has_shared(
+                arg, func.__cls__) is not False:
             continue
         arguments.append(([arg], {}, ))
         func.__named__.append(arg)
