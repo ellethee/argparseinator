@@ -136,24 +136,27 @@ def get_functarguments(func):
     func.__named__ = []
     arguments = []
     for arg in args:
+        arg = arg.replace("-", "-")
         if hasattr(func, '__cls__') and has_shared(
                 arg, func.__cls__) is not False:
             continue
         arguments.append(([arg], {}, ))
         func.__named__.append(arg)
     for key, val in kwargs.items():
-        if has_shared(key, func.__cls__) is not False:
+        if hasattr(func, '__cls__') and has_shared(
+                key.replace("-", "_"), func.__cls__) is not False:
             continue
         if isinstance(val, dict):
             flags = [val.pop('lflag', '--%s' % key)]
             short = val.pop('flag', None)
-            val['dest'] = key
+            dest = val.get('dest', key).replace('-', '_')
             if short:
                 flags.insert(0, short)
         else:
             flags = ['--%s' % key]
             val = dict(default=val)
-        func.__named__.append(flags[0])
+            dest = key.replace('-', '_')
+        func.__named__.append(dest)
         arguments.append((flags, val, ))
     return arguments
 

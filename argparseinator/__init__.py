@@ -5,7 +5,7 @@
 """
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 __date__ = "2014-10-23"
 
 from gettext import gettext as _
@@ -295,7 +295,8 @@ def arg(*args, **kwargs):
             func.__arguments__ = utils.get_arguments(func, True, cls)
             if len(args) or len(kwargs):
                 try:
-                    idx = func.__named__.index(args[-1].lstrip('-'))
+                    idx = func.__named__.index(args[-1].lstrip('-').replace(
+                        '-', '_'))
                     del func.__named__[idx]
                     del func.__arguments__[idx]
                 except ValueError:
@@ -310,7 +311,8 @@ def arg(*args, **kwargs):
                 ap_.commands[func.__cmd_name__] = func
             if len(args) or len(kwargs):
                 try:
-                    idx = func.__named__.index(args[-1].lstrip('-'))
+                    idx = func.__named__.index(args[-1].lstrip('-').replace(
+                        '-', '_'))
                     del func.__named__[idx]
                     del func.__arguments__[idx]
                 except ValueError:
