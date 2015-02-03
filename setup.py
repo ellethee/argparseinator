@@ -47,7 +47,7 @@ setup(
     version=find_version('argparseinator/__init__.py'),
     description='A silly class to semplify ArgumentParser.',
     long_description=long_description,
-    url="https://bitbucket.org/ellethee/argparserinator/overview",
+    url="https://bitbucket.org/ellethee/argparseinator/overview",
     author='ellethee',
     author_email='luca800@gmail.com',
     license='MIT',
