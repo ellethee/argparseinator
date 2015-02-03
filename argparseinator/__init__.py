@@ -295,7 +295,7 @@ def arg(*args, **kwargs):
             func.__arguments__ = utils.get_arguments(func, True, cls)
             if len(args) or len(kwargs):
                 try:
-                    idx = func.__named__.index(args[-1])
+                    idx = func.__named__.index(args[-1].lstrip('-'))
                     del func.__named__[idx]
                     del func.__arguments__[idx]
                 except ValueError:
@@ -310,7 +310,7 @@ def arg(*args, **kwargs):
                 ap_.commands[func.__cmd_name__] = func
             if len(args) or len(kwargs):
                 try:
-                    idx = func.__named__.index(args[-1])
+                    idx = func.__named__.index(args[-1].lstrip('-'))
                     del func.__named__[idx]
                     del func.__arguments__[idx]
                 except ValueError:
