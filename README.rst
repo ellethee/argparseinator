@@ -7,4 +7,4 @@ Docs
 -------
 See readthedocs
 
-[ArgParseInator](http://argparserinator.readthedocs.org/it/latest/)
+[ArgParseInator](http://argparseinator.readthedocs.org/)
