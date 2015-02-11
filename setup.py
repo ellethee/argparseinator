@@ -40,7 +40,10 @@ with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
 setup(
     name='ArgParseInator',
     version=find_version('argparseinator/__init__.py'),
-    description='A silly class to semplify ArgumentParser.',
+    description=(
+        "Decorators and wrapper for easily define script's arguments "
+        "within functions and classes. just defining function's args."
+    ),
     long_description=LONG_DESCRIPTION,
     url="https://bitbucket.org/ellethee/argparseinator/overview",
     author='ellethee',
@@ -55,6 +58,9 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
     ],
-    keywords='simple arguments argumentparser options args command line',
+    keywords=(
+        "simple arguments argumentparser options args command line argparse "
+        "optparse optionparser script"
+    ),
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
 )

@@ -5,7 +5,7 @@
 """
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __date__ = "2014-10-23"
 
 from gettext import gettext as _
@@ -29,6 +29,7 @@ class ArgParseInated(object):
 
     def __init__(self, parseinator, **new_attributes):
         self.__dict__.update(**new_attributes)
+        self.parseinator = parseinator
         self.args = parseinator.args
         self.write = parseinator.write
         self.writeln = parseinator.writeln
@@ -81,17 +82,21 @@ class ArgParseInator(object):
             self, add_output=None, args=None, auth_phrase=None,
             never_single=None, formatter_class=None, write_name=None,
             write_line_name=None, auto_exit=None, default_cmd=None,
-            setup=None, **argparse_args):
+            setup=None, ff_prefix=None, **argparse_args):
         self.auth_phrase = auth_phrase or self.auth_phrase
         self.never_single = never_single or self.never_single
         self.add_output = add_output or self.add_output
         self.ap_args = args or self.ap_args
         self.auto_exit = auto_exit or self.auto_exit
         mod = sys.modules['__main__']
-        if 'version' not in argparse_args:
+        if 'version' not in argparse_args and hasattr(mod, '__version__'):
             argparse_args['version'] = "%(prog)s " + mod.__version__
-        if 'description' not in argparse_args:
+        if 'description' not in argparse_args and hasattr(mod, '__doc__'):
             argparse_args['description'] = mod.__doc__
+        if ff_prefix is True:
+            argparse_args['fromfile_prefix_chars'] = '@'
+        elif ff_prefix is not None:
+            argparse_args['fromfile_prefix_chars'] = ff_prefix
         self.argparse_args.update(**argparse_args)
         self.formatter_class = formatter_class or self.formatter_class
         self.write_name = write_name or self.write_name
@@ -265,13 +270,13 @@ class ArgParseInator(object):
         """
         Scrive sull'output o sullo STDOUT.
         """
-        self._output.write(' '.join(string))
+        self._output.write(' '.join([str(s) for s in string]))
 
     def writeln(self, *string):
         """
         Scrive una riga sull'output o sullo STDOUT.
         """
-        self._output.write(' '.join(string) + linesep)
+        self._output.write(' '.join([str(s) for s in string]) + linesep)
 
     def exit(self, status=0, message=None):
         """
