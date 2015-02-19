@@ -12,7 +12,6 @@ import argparse
 import inspect
 import os
 import glob
-import types
 import sys
 
 COMMANDS_LIST_TITLE = "Commands"
@@ -73,6 +72,21 @@ def check_class():
     return cls
 
 
+def collect_appendvars(ap_, cls):
+    """
+    colleziona eleminti per le liste.
+    """
+    for key, value in cls.__dict__.items():
+        if key.startswith('appendvars_'):
+            varname = key[11:]
+            if varname not in ap_.appendvars:
+                ap_.appendvars[varname] = []
+            if value not in ap_.appendvars[varname]:
+                if not isinstance(value, list):
+                    value = [value]
+                ap_.appendvars[varname] += value
+
+
 def isglob(value):
     """
     Windows non traduce automaticamente i wildchars così lo facciamo
@@ -112,9 +126,22 @@ def has_shared(arg, cls):
     """
     try:
         idx = [
-            n[0][-1].replace('--', '')
+            n[0][-1].replace('--', '').replace('-', '_')
             for n in cls.__shared_arguments__].index(arg)
-    except:
+    except (ValueError, AttributeError):
+        idx = False
+    return idx
+
+
+def has_arg(arg, func):
+    """
+    Verifiac se ha un arg
+    """
+    try:
+        idx = [
+            n[0][-1].replace('--', '').replace('-', '_')
+            for n in func.__arguments__].index(arg)
+    except (ValueError, AttributeError):
         idx = False
     return idx
 
@@ -136,7 +163,6 @@ def get_functarguments(func):
     func.__named__ = []
     arguments = []
     for arg in args:
-        arg = arg.replace("-", "-")
         if hasattr(func, '__cls__') and has_shared(
                 arg, func.__cls__) is not False:
             continue
@@ -144,7 +170,7 @@ def get_functarguments(func):
         func.__named__.append(arg)
     for key, val in kwargs.items():
         if hasattr(func, '__cls__') and has_shared(
-                key.replace("-", "_"), func.__cls__) is not False:
+                key, func.__cls__) is not False:
             continue
         if isinstance(val, dict):
             flags = [val.pop('lflag', '--%s' % key)]
@@ -161,64 +187,11 @@ def get_functarguments(func):
     return arguments
 
 
-def get_arguments(func, create=False, cls=None):
-    """
-    Ritorna le opzioni di una funzione se ci sono o None
-
-    :param func: Funzione da analizzare.
-    :type func: function
-    :param create: Indica se creare la lista di opzioni in caso non ci siano.
-    :type create: bool
-    """
-    # Se non è un tipo di funzione valido ritorno direttamente None.
-    if not isinstance(func, (
-            types.FunctionType, types.MethodType, staticmethod, classmethod)):
-        return None
-    # Se *func* è un metodo statico le opzioni sono dentro __func__
-    if isinstance(func, staticmethod):
-        try:
-            arguments = func.__func__.__arguments__
-        except AttributeError:
-            if create:
-                func.__func__.__cls__ = cls
-                arguments = func.__func__.__arguments__ = get_functarguments(
-                    func.__func__)
-            else:
-                arguments = None
-    else:
-        try:
-            arguments = func.__arguments__
-        except AttributeError:
-            if create:
-                func.__cls__ = cls
-                arguments = func.__arguments__ = get_functarguments(func)
-            else:
-                arguments = None
-    return arguments
-
-
-def get_parser(func, parent, parent_funct=None):
+def get_parser(func, parent):
     """
     Imposta il parser.
     """
-    name = getattr(func, '__cmd_name__', func.__name__)
-    if hasattr(parent, 'add_parser'):
-        parser = parent.add_parser(
-            name, help=func.__doc__,
-            # conflict_handler='resolve',
-        )
-    else:
-        parser = parent.add_subparsers(
-            name, help=func.__doc__,
-            # conflict_handler='resolve',
-        )
-    if hasattr(parent_funct, '__shared_arguments__'):
-        for args, kwargs in parent_funct.__shared_arguments__:
-            parser.add_argument(*args, **kwargs)
-    elif func.__cls__ is not None and hasattr(
-            func.__cls__, '__shared_arguments__'):
-        for args, kwargs in func.__cls__.__shared_arguments__:
-            parser.add_argument(*args, **kwargs)
+    parser = parent.add_parser(func.__cmd_name__, help=func.__doc__)
     for args, kwargs in func.__arguments__:
         parser.add_argument(*args, **kwargs)
     return parser
@@ -228,14 +201,20 @@ def set_subcommands(func, parser):
     """
     Set subcommands.
     """
-    if func.__subcommands__:
+    if hasattr(func, '__subcommands__') and func.__subcommands__:
         sub_parser = parser.add_subparsers(
             title=(SUBCOMMANDS_LIST_TITLE), dest='subcommand',
             description=(SUBCOMMANDS_LIST_DESCRIPTION.format(
                 func.__cmd_name__)),
             help=(func.__doc__))
         for sub_func in func.__subcommands__.values():
-            get_parser(sub_func, sub_parser, func)
+            sparser = get_parser(sub_func, sub_parser)
+            if hasattr(func, '__shared_arguments__'):
+                for args, kwargs in func.__shared_arguments__:
+                    sparser.add_argument(*args, **kwargs)
+    elif hasattr(func.__cls__, '__shared_arguments__'):
+        for args, kwargs in func.__cls__.__shared_arguments__:
+            parser.add_argument(*args, **kwargs)
 
 
 def check_help():

@@ -2,7 +2,7 @@
 """
     Administation commands for multi commands example.
 """
-from argparseinator import class_args, arg, cmd_auth, ArgParseInated
+from argparseinator import class_args, arg, cmd_auth, ArgParseInated, ap_arg
 
 
 class UserExistsError(Exception):
@@ -17,10 +17,12 @@ class Admin(ArgParseInated):
     """Administrations commands."""
     # Our command name.
     __cmd_name__ = "admin"
+    __shared_arguments__ = [
+        ap_arg("-p", "--passwd", help="User parssword"),
+        ap_arg("username", help="username"),
+    ]
 
-    @arg("username", help="username")
-    @arg("-p", "--passwd", help="User parssword")
-    @cmd_auth()
+    @arg()
     def useradd(self, username, passwd):
         """Fake Create new user command."""
         self.writeln("Creating user", username, '...')
@@ -34,8 +36,7 @@ class Admin(ArgParseInated):
             pass
         return 0, "User {} created".format(username)
 
-    @arg("username", help="username")
-    @cmd_auth()
+    @arg()
     def userdelete(self, username):
         """Fake Delete user command."""
         self.writeln("Deleting user", username, '...')

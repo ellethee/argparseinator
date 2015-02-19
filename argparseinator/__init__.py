@@ -5,7 +5,7 @@
 """
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 __date__ = "2014-10-23"
 
 from gettext import gettext as _
@@ -77,6 +77,7 @@ class ArgParseInator(object):
     cmd_name = None
     default_cmd = None
     setup = []
+    appendvars = {}
 
     def __init__(
             self, add_output=None, args=None, auth_phrase=None,
@@ -153,13 +154,14 @@ class ArgParseInator(object):
         """
         self._compile()
         self.args = None
-        if (len(sys.argv) > 1 and not utils.check_help() and self.default_cmd
-                and sys.argv[1] not in self.commands):
+        cmds = [c for c in sys.argv[1:] if not c.startswith("-")]
+        if (len(cmds) > 0 and not utils.check_help() and self.default_cmd
+                and cmds[0] not in self.commands):
             sys.argv.insert(1, self.default_cmd)
         self.args = self.parser.parse_args()
         # set up the output.
         if self.args:
-            if 'output' in self.args and self.args.output is not None:
+            if self.add_output and self.args.output is not None:
                 import codecs
                 self._output = codecs.open(
                     self.args.output, 'w', encoding='utf8')
@@ -201,7 +203,7 @@ class ArgParseInator(object):
             func = self.commands[self.args.command]
 
         # Vediamo se abbiamo un sottocomando e in caso lo impostiamo
-        if func.__subcommands__ is not None:
+        if hasattr(func, '__subcommands__') and func.__subcommands__:
             command = func.__subcommands__[self.args.subcommand]
         # Altrimenti vediamo se abbiamo un metodo e impostiamo quello come
         # sottocomando.
@@ -295,34 +297,21 @@ def arg(*args, **kwargs):
         Docora la funzione.
         """
         func.__cmd_name__ = kwargs.pop('cmd_name', func.__name__)
-        cls = utils.check_class()
-        if cls is not None:
-            func.__arguments__ = utils.get_arguments(func, True, cls)
-            if len(args) or len(kwargs):
-                try:
-                    idx = func.__named__.index(args[-1].lstrip('-').replace(
-                        '-', '_'))
-                    del func.__named__[idx]
-                    del func.__arguments__[idx]
-                except ValueError:
-                    pass
-                func.__arguments__.append((args, kwargs,))
-        elif isinstance(func, types.FunctionType):
+        func.__cls__ = utils.check_class()
+        func.__arguments__ = utils.get_functarguments(func)
+        if len(args) or len(kwargs):
+            try:
+                idx = func.__named__.index(args[-1].lstrip('-').replace(
+                    '-', '_'))
+                del func.__named__[idx]
+                del func.__arguments__[idx]
+            except ValueError:
+                pass
+            func.__arguments__.append((args, kwargs,))
+        if func.__cls__ is None and isinstance(func, types.FunctionType):
             ap_ = ArgParseInator()
             if func.__cmd_name__ not in ap_.commands:
-                func.__arguments__ = utils.get_functarguments(func)
-                func.__subcommands__ = None
-                func.__cls__ = None
                 ap_.commands[func.__cmd_name__] = func
-            if len(args) or len(kwargs):
-                try:
-                    idx = func.__named__.index(args[-1].lstrip('-').replace(
-                        '-', '_'))
-                    del func.__named__[idx]
-                    del func.__arguments__[idx]
-                except ValueError:
-                    pass
-                func.__arguments__.append((args, kwargs,))
         return func
     return decorate
 
@@ -332,25 +321,23 @@ def class_args(cls):
     Decora una classe *preparandola* per gestire il parser di argomenti.
     """
     ap_ = ArgParseInator()
-    if hasattr(cls, '__cmd_name__'):
+    utils.collect_appendvars(ap_, cls)
+    cmds = {}
+    for func in [f for f in cls.__dict__.values()
+                 if hasattr(f, '__cmd_name__')]:
+        func.__subcommands__ = None
+        func.__cls__ = cls
+        cmds[func.__cmd_name__] = func
+    if hasattr(cls, '__cmd_name__') and cls.__cmd_name__ not in ap_.commands:
         if cls.__cmd_name__ not in ap_.commands:
-            cls.__subcommands__ = {}
             cls.__arguments__ = []
-            utils.get_arguments(cls, True, cls)
             cls.__cls__ = cls
-            for name, func in cls.__dict__.items():
-                arguments = utils.get_arguments(func)
-                if arguments is not None:
-                    cls.__subcommands__[name] = func
+            cls.__subcommands__ = cmds
             ap_.commands[cls.__cmd_name__] = cls
     else:
-        for name, func in cls.__dict__.items():
+        for name, func in cmds.items():
             if name not in ap_.commands:
-                arguments = utils.get_arguments(func)
-                if arguments is not None:
-                    func.__cls__ = cls
-                    func.__subcommands__ = None
-                    ap_.commands[name] = func
+                ap_.commands[name] = func
     return cls
 
 
@@ -390,5 +377,6 @@ def import_commands(commands_folder):
         mod_name = os.path.splitext(filename)[0]
         try:
             importlib.import_module("{}.{}".format(commands, mod_name))
-        except ImportError as err:
+        # except ImportError as err:
+        except Exception as err:
             print (err)
