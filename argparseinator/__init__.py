@@ -5,7 +5,7 @@
 """
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.9"
+__version__ = "1.0.10"
 __date__ = "2014-10-23"
 
 from gettext import gettext as _
@@ -298,11 +298,13 @@ def arg(*args, **kwargs):
         """
         func.__cmd_name__ = kwargs.pop('cmd_name', func.__name__)
         func.__cls__ = utils.check_class()
-        func.__arguments__ = utils.get_functarguments(func)
+        if not hasattr(func, '__arguments__'):
+            func.__arguments__ = utils.get_functarguments(func)
         if len(args) or len(kwargs):
+            arg_name = kwargs.get(
+                'dest', args[-1].lstrip('-').replace('-', '_'))
             try:
-                idx = func.__named__.index(args[-1].lstrip('-').replace(
-                    '-', '_'))
+                idx = func.__named__.index(arg_name)
                 del func.__named__[idx]
                 del func.__arguments__[idx]
             except ValueError:
@@ -322,18 +324,17 @@ def class_args(cls):
     """
     ap_ = ArgParseInator()
     utils.collect_appendvars(ap_, cls)
+    cls.__cls__ = cls
     cmds = {}
+    cls.__arguments__ = getattr(cls, '__arguments__', [])
     for func in [f for f in cls.__dict__.values()
                  if hasattr(f, '__cmd_name__')]:
         func.__subcommands__ = None
         func.__cls__ = cls
         cmds[func.__cmd_name__] = func
     if hasattr(cls, '__cmd_name__') and cls.__cmd_name__ not in ap_.commands:
-        if cls.__cmd_name__ not in ap_.commands:
-            cls.__arguments__ = []
-            cls.__cls__ = cls
-            cls.__subcommands__ = cmds
-            ap_.commands[cls.__cmd_name__] = cls
+        cls.__subcommands__ = cmds
+        ap_.commands[cls.__cmd_name__] = cls
     else:
         for name, func in cmds.items():
             if name not in ap_.commands:

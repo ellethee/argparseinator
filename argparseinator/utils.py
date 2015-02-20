@@ -120,27 +120,21 @@ def string_or_bool(value):
     return value
 
 
-def has_shared(arg, cls):
+def has_shared(arg, shared):
     """
     Verifica se ci sono shared.
     """
     try:
-        idx = [
-            n[0][-1].replace('--', '').replace('-', '_')
-            for n in cls.__shared_arguments__].index(arg)
-    except (ValueError, AttributeError):
+        if isinstance(shared, list):
+            shared_arguments = shared
+        else:
+            shared_arguments = shared.__shared_arguments__
+        for idx, (args, kwargs) in enumerate(shared_arguments):
+            arg_name = kwargs.get(
+                'dest', args[-1].lstrip('-').replace('-', '_'))
+            if arg_name == arg:
+                return idx
         idx = False
-    return idx
-
-
-def has_arg(arg, func):
-    """
-    Verifiac se ha un arg
-    """
-    try:
-        idx = [
-            n[0][-1].replace('--', '').replace('-', '_')
-            for n in func.__arguments__].index(arg)
     except (ValueError, AttributeError):
         idx = False
     return idx
@@ -162,15 +156,14 @@ def get_functarguments(func):
         args.pop(0)
     func.__named__ = []
     arguments = []
+    shared = get_shared(func)
     for arg in args:
-        if hasattr(func, '__cls__') and has_shared(
-                arg, func.__cls__) is not False:
+        if has_shared(arg, shared) is not False:
             continue
         arguments.append(([arg], {}, ))
         func.__named__.append(arg)
     for key, val in kwargs.items():
-        if hasattr(func, '__cls__') and has_shared(
-                key, func.__cls__) is not False:
+        if has_shared(key, shared) is not False:
             continue
         if isinstance(val, dict):
             flags = [val.pop('lflag', '--%s' % key)]
@@ -191,10 +184,34 @@ def get_parser(func, parent):
     """
     Imposta il parser.
     """
+    # if func.__cmd_name__ == 'crea':
+    #     import ipdb;ipdb.set_trace()
     parser = parent.add_parser(func.__cmd_name__, help=func.__doc__)
     for args, kwargs in func.__arguments__:
         parser.add_argument(*args, **kwargs)
     return parser
+
+
+def get_shared(func):
+    """
+    return shared.
+    """
+    shared = []
+    if not hasattr(func, '__cls__'):
+        return shared
+    if not hasattr(func.__cls__, '__shared_arguments__'):
+        return shared
+    if hasattr(func, '__no_share__'):
+        if func.__no_share__ is True:
+            return shared
+        else:
+            shared += [
+                s for s in func.__cls__.__shared_arguments__
+                if (s[0][-1].replace('--', '').replace('-', '_'))
+                not in func.__no_share__]
+    else:
+        shared = func.__cls__.__shared_arguments__
+    return shared
 
 
 def set_subcommands(func, parser):
@@ -208,12 +225,11 @@ def set_subcommands(func, parser):
                 func.__cmd_name__)),
             help=(func.__doc__))
         for sub_func in func.__subcommands__.values():
-            sparser = get_parser(sub_func, sub_parser)
-            if hasattr(func, '__shared_arguments__'):
-                for args, kwargs in func.__shared_arguments__:
-                    sparser.add_argument(*args, **kwargs)
-    elif hasattr(func.__cls__, '__shared_arguments__'):
-        for args, kwargs in func.__cls__.__shared_arguments__:
+            parser = get_parser(sub_func, sub_parser)
+            for args, kwargs in get_shared(sub_func):
+                parser.add_argument(*args, **kwargs)
+    else:
+        for args, kwargs in get_shared(func):
             parser.add_argument(*args, **kwargs)
 
 
