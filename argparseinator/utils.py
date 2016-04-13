@@ -13,6 +13,13 @@ import inspect
 import os
 import glob
 import sys
+import platform
+
+SYSTEM = platform.system()
+IS_WINDOWS = 'windows' in SYSTEM.lower()
+IS_LINUX = 'linux' in SYSTEM.lower()
+IS_FROZEN = hasattr(sys, 'frozen')
+IS_WIN_FROZEN = getattr(sys, 'frozen', '') == "windows_exe"
 
 COMMANDS_LIST_TITLE = "Commands"
 COMMANDS_LIST_DESCRIPTION = "Commands for %(prog)s"
@@ -209,8 +216,6 @@ def get_parser(func, parent):
     """
     Imposta il parser.
     """
-    # if func.__cmd_name__ == 'crea':
-    #     import ipdb;ipdb.set_trace()
     parser = parent.add_parser(func.__cmd_name__, help=func.__doc__)
     for args, kwargs in func.__arguments__:
         parser.add_argument(*args, **kwargs)

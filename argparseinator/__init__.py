@@ -18,6 +18,7 @@ import inspect
 from os import linesep
 import os
 import gettext
+EXIT_OK = 0
 
 
 class ArgParseInated(object):
@@ -74,21 +75,25 @@ class ArgParseInator(object):
     write_line_name = 'writeln'
     # auto_exit
     auto_exit = False
+    msg_on_error_only = False
     cmd_name = None
     default_cmd = None
     setup = []
     appendvars = {}
+    error = None
 
     def __init__(
             self, add_output=None, args=None, auth_phrase=None,
             never_single=None, formatter_class=None, write_name=None,
             write_line_name=None, auto_exit=None, default_cmd=None,
-            setup=None, ff_prefix=None, **argparse_args):
+            setup=None, ff_prefix=None, error=None, msg_on_error_only=None,
+            **argparse_args):
         self.auth_phrase = auth_phrase or self.auth_phrase
         self.never_single = never_single or self.never_single
         self.add_output = add_output or self.add_output
         self.ap_args = args or self.ap_args
         self.auto_exit = auto_exit or self.auto_exit
+        self.msg_on_error_only = msg_on_error_only or self.msg_on_error_only
         mod = sys.modules['__main__']
         if 'version' not in argparse_args and hasattr(mod, '__version__'):
             argparse_args['version'] = "%(prog)s " + mod.__version__
@@ -104,6 +109,8 @@ class ArgParseInator(object):
         self.write_line_name = write_line_name or self.write_line_name
         self.default_cmd = default_cmd or self.default_cmd
         self.setup = setup or self.setup
+        self.error = error or self.error
+
 
     def _compile(self):
         """
@@ -119,9 +126,15 @@ class ArgParseInator(object):
                 self.argparse_args.get('version') or version)
         self.parser = argparse.ArgumentParser(
             formatter_class=self.formatter_class, **self.argparse_args)
+        if self.error:
+            setattr(
+                self.parser, 'error', types.MethodType(self.error, self.parser))
         if self.add_output:
             self.parser.add_argument(
                 '-o', '--output', metavar="FILE", help="Output to file")
+            self.parser.add_argument(
+                '--encoding', default="utf-8",
+                help="Encoding for output file.")
         if self.ap_args is not None:
             for aargs, akargs in self.ap_args:
                 self.parser.add_argument(*aargs, **akargs)
@@ -135,9 +148,9 @@ class ArgParseInator(object):
                 self.parser.add_argument(*args, **kwargs)
             self._single = func
             if not self.parser.description:
-                self.parser.description = _(func.__doc__)
+                self.parser.description = _(func.__doc__ or "")
             else:
-                self.parser.description += linesep + _(func.__doc__)
+                self.parser.description += linesep + _(func.__doc__ or "")
             utils.set_subcommands(func, self.parser)
         else:
             self._single = None
@@ -163,8 +176,11 @@ class ArgParseInator(object):
         if self.args:
             if self.add_output and self.args.output is not None:
                 import codecs
-                self._output = codecs.open(
-                    self.args.output, 'w', encoding='utf8')
+                if self.args.encoding.lower() == 'raw':
+                    self._output = open(self.args.output, 'wb')
+                else:
+                    self._output = codecs.open(
+                        self.args.output, 'wb', encoding=self.args.encoding)
             self._is_parsed = True
 
     def check_auth(self, name):
@@ -280,11 +296,17 @@ class ArgParseInator(object):
         """
         self._output.write(' '.join([str(s) for s in string]) + linesep)
 
-    def exit(self, status=0, message=None):
+    def exit(self, status=EXIT_OK, message=None):
         """
         Terminate the script.
         """
-        self.parser.exit(status, message)
+        if self.msg_on_error_only:
+            if status != EXIT_OK:
+                self.parser.exit(status, message)
+            else:
+                self.parser.exit(status, None)
+        else:
+            self.parser.exit(status, message)
 
 
 def arg(*args, **kwargs):
@@ -367,7 +389,24 @@ def cmd_auth(auth_phrase=None):
     return decorate
 
 
-def import_commands(commands_folder):
+def import_commands(commands_package):
+    """
+    Imports commands modules for the script.
+    """
+    import pkgutil
+    try:
+        mod = __import__(commands_package)
+    except ImportError:
+        mod = None
+    if mod:
+        for loader, name, ispkg in pkgutil.iter_modules(mod.__path__):
+            try:
+                __import__("{}.{}".format(commands_package, name))
+            except ImportError:
+                pass
+
+
+def import_commands_folder(commands_folder):
     """
     Imports commands modules for the script.
     """
