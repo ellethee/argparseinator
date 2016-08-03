@@ -267,6 +267,14 @@ def check_help():
     """
     check know args in argv.
     """
+    # know arguments
     know = set(('-h', '--help', '-v', '--version'))
+    # arguments
     args = set(sys.argv[1:])
+    # returns True if there is at least one known argument in arguments
     return len(know.intersection(args)) > 0
+
+
+def write_parser(parser, filename):
+    """Write the parser to file"""
+    pass
