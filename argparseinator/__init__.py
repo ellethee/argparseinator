@@ -3,6 +3,7 @@
     ArgParseInator.
     silly but funny thing thats can help you to manage argparse and functions
 """
+from __future__ import print_function
 __file_name__ = "__init__.py"
 __author__ = "luca"
 __version__ = "1.0.11"
@@ -23,7 +24,7 @@ gettext.install(
     "argparseinator", os.path.join(os.path.dirname(__file__), 'locale'))
 
 
-class ArgParseInated(object):
+class ArgParseInated(object): # pylint: disable=too-few-public-methods
     """
     Class for deriving from
     """
@@ -65,7 +66,7 @@ class ArgParseInated(object):
         pass
 
 
-class ArgParseInator(object):
+class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
     """
     ArgParseInator class.
     """
@@ -90,7 +91,7 @@ class ArgParseInator(object):
     # subparsers
     subparsers = None
     # parsed arguments
-    ap_args = None
+    ap_args = []
     # authorizations
     auths = {}
     # authorization phrase
@@ -113,7 +114,7 @@ class ArgParseInator(object):
     # default encoding
     encoding = 'utf-8'
 
-    def __init__(
+    def __init__( # pylint: disable=too-many-arguments
             self, add_output=None, args=None, auth_phrase=None,
             never_single=None, formatter_class=None, write_name=None,
             write_line_name=None, auto_exit=None, default_cmd=None,
@@ -130,7 +131,9 @@ class ArgParseInator(object):
         mod = sys.modules['__main__']
         # setup the script version
         if 'version' not in argparse_args and hasattr(mod, '__version__'):
-            argparse_args['version'] = "%(prog)s " + mod.__version__
+            version = "%(prog)s " + mod.__version__
+            self.ap_args.append(
+                ap_arg('--version', action='version', version=version))
         # setup the script description
         if 'description' not in argparse_args and hasattr(mod, '__doc__'):
             argparse_args['description'] = mod.__doc__
@@ -576,10 +579,10 @@ def import_commands(commands_package):
     if mod:
         # if we have a commands module
         # we iter the modules and try to import them
-        for _loader, name, _ in pkgutil.iter_modules(mod.__path__):
+        for module in pkgutil.iter_modules(mod.__path__):
             try:
                 # try to import the module
-                __import__("{}.{}".format(commands_package, name))
+                __import__("{}.{}".format(commands_package, module[1]))
             except ImportError:
                 pass
 
@@ -589,7 +592,6 @@ def import_commands_folder(commands_folder):
     Imports commands modules for the script.
     """
     import importlib
-    import os
     # get folder basename
     commands = os.path.basename(commands_folder)
     for filename in os.listdir(commands_folder):
