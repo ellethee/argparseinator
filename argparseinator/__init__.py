@@ -68,6 +68,7 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
     """
     # we will use a Singleton
     __metaclass__ = utils.Singleton
+    __reinit__ = True
     # setup the standard output
     _output = sys.stdout
     # the main parser object
@@ -115,8 +116,10 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             never_single=None, formatter_class=None, write_name=None,
             write_line_name=None, auto_exit=None, default_cmd=None,
             setup=None, ff_prefix=None, error=None, msg_on_error_only=None,
-            config=None,
+            config=None, skip_init=False,
             **argparse_args):
+        if skip_init:
+            return
         self.auth_phrase = auth_phrase or self.auth_phrase
         self.never_single = never_single or self.never_single
         self.add_output = add_output or self.add_output
@@ -126,7 +129,7 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
         # get the main module
         mod = sys.modules['__main__']
         # setup the script version
-        if 'version' not in argparse_args and hasattr(mod, '__version__'):
+        if hasattr(mod, '__version__'):
             version = "%(prog)s " + mod.__version__
             self.ap_args.append(
                 ap_arg('-v', '--version', action='version', version=version))
@@ -484,7 +487,7 @@ def arg(*args, **kwargs):
         if func.__cls__ is None and isinstance(func, types.FunctionType):
             # if the function don't have a class and is a FunctionType
             # we'll add it directly to he commands list.
-            ap_ = ArgParseInator()
+            ap_ = ArgParseInator(skip_init=True)
             if func.__cmd_name__ not in ap_.commands:
                 # we'll add it if not exists
                 ap_.commands[func.__cmd_name__] = func
@@ -497,7 +500,7 @@ def class_args(cls):
     Decorates a class to handle the arguments parser.
     """
     # get the Singleton
-    ap_ = ArgParseInator()
+    ap_ = ArgParseInator(skip_init=True)
     # collect special vars (really need?)
     utils.collect_appendvars(ap_, cls)
     # set class reference
@@ -547,7 +550,7 @@ def cmd_auth(auth_phrase=None):
         decorates the funcion
         """
         # get the Singleton
-        ap_ = ArgParseInator()
+        ap_ = ArgParseInator(skip_init=True)
         # set the authorization name
         auth_name = id(func)
         if auth_phrase is None:
