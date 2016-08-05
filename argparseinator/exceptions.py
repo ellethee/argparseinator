@@ -8,8 +8,6 @@ __author__ = "luca"
 __version__ = "1.0.0"
 __date__ = "2014-10-23"
 
-from gettext import gettext as _
-
 
 class ArgParseInatorError(Exception):
     """
@@ -26,25 +24,25 @@ class ArgParseInatorInvalidCommand(ArgParseInatorError):
     """Invalid Command"""
     def __init__(self):
         super(ArgParseInatorInvalidCommand, self).__init__(
-            225, _("Invalid command"))
+            225, "Invalid command")
 
 
 class ArgParseInatorNoCommandsFound(ArgParseInatorError):
     """No commands found"""
     def __init__(self):
         super(ArgParseInatorNoCommandsFound, self).__init__(
-            226, _("No commands found"))
+            226, "No commands found")
 
 
 class ArgParseInatorAuthorizationRequired(ArgParseInatorError):
     """Authorization required"""
     def __init__(self):
         super(ArgParseInatorAuthorizationRequired, self).__init__(
-            227, _("Authorization required"))
+            227, "Authorization required")
 
 
 class ArgParseInatorNotValidAuthorization(ArgParseInatorError):
     """Not valid Authorization"""
     def __init__(self):
         super(ArgParseInatorNotValidAuthorization, self).__init__(
-            228, _("Not valid authorization"))
+            228, "Not valid authorization")

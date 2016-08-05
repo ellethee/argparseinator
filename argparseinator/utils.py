@@ -251,10 +251,10 @@ def set_subcommands(func, parser):
     """
     if hasattr(func, '__subcommands__') and func.__subcommands__:
         sub_parser = parser.add_subparsers(
-            title=(SUBCOMMANDS_LIST_TITLE), dest='subcommand',
-            description=(SUBCOMMANDS_LIST_DESCRIPTION.format(
-                func.__cmd_name__)),
-            help=(func.__doc__))
+            title=SUBCOMMANDS_LIST_TITLE, dest='subcommand',
+            description=SUBCOMMANDS_LIST_DESCRIPTION.format(
+                func.__cmd_name__),
+            help=func.__doc__)
         for sub_func in func.__subcommands__.values():
             parser = get_parser(sub_func, sub_parser)
             for args, kwargs in get_shared(sub_func):

@@ -14,14 +14,10 @@ import types
 import inspect
 from os import linesep
 import os
-import gettext
-from gettext import gettext as _
 import argparse
 from argparseinator import utils
 from argparseinator import exceptions
 EXIT_OK = 0
-gettext.install(
-    "argparseinator", os.path.join(os.path.dirname(__file__), 'locale'))
 
 
 class ArgParseInated(object): # pylint: disable=too-few-public-methods
@@ -133,7 +129,7 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
         if 'version' not in argparse_args and hasattr(mod, '__version__'):
             version = "%(prog)s " + mod.__version__
             self.ap_args.append(
-                ap_arg('--version', action='version', version=version))
+                ap_arg('-v', '--version', action='version', version=version))
         # setup the script description
         if 'description' not in argparse_args and hasattr(mod, '__doc__'):
             argparse_args['description'] = mod.__doc__
@@ -209,10 +205,10 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             self._single = func
             if not self.parser.description:
                 # replace the description if we dont' have one
-                self.parser.description = _(func.__doc__ or "")
+                self.parser.description = func.__doc__ or ""
             else:
                 # or add to the main description
-                self.parser.description += linesep + _(func.__doc__ or "")
+                self.parser.description += linesep + (func.__doc__ or "")
             utils.set_subcommands(func, self.parser)
         else:
             # if we have more than one command or we don't want a single command
@@ -220,8 +216,8 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             self._single = None
             # setup the subparsers
             self.subparsers = self.parser.add_subparsers(
-                title=_(utils.COMMANDS_LIST_TITLE), dest='command',
-                description=_(utils.COMMANDS_LIST_DESCRIPTION))
+                title=utils.COMMANDS_LIST_TITLE, dest='command',
+                description=utils.COMMANDS_LIST_DESCRIPTION)
             # add all the commands
             for func in self.commands.values():
                 parser = utils.get_parser(func, self.subparsers)
@@ -511,7 +507,7 @@ def class_args(cls):
     cls.__arguments__ = getattr(cls, '__arguments__', [])
     # cycle through class functions
     for func in [f for f in cls.__dict__.values()
-                 if hasattr(f, '__cmd_name__')]:
+                 if hasattr(f, '__cmd_name__') and not inspect.isclass(f)]:
         # clear subcommands
         func.__subcommands__ = None
         # set the parent class
