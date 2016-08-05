@@ -600,4 +600,4 @@ def import_commands_folder(commands_folder):
             importlib.import_module("{}.{}".format(commands, mod_name))
         # except ImportError as err:
         except StandardError as err:
-            print err
+            print (err)
