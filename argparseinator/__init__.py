@@ -266,6 +266,7 @@ class ArgParseInator(object):
                 self.cfg_file = self.args.config
             # now is parsed.
             self._is_parsed = True
+        return self
 
     def check_auth(self, name):
         """
@@ -329,108 +330,164 @@ class ArgParseInator(object):
         """
         Execute command.
         """
+        # let's get command(function) argspec
         arg_specs = inspect.getargspec(command)
         if arg_specs.defaults:
+            # if we have defaults
+            # count defaults arguments
             count = len(arg_specs.defaults)
+            # get arguments names
             args_names = arg_specs.args[:count]
+            # get keyword arguments names
             kwargs_name = arg_specs.args[count:]
         else:
+            # else all names are the args only
             args_names = arg_specs.args
+            # and keyword arguments is empty
             kwargs_name = []
         pargs = []
         kwargs = {}
+        # for every argument in argument names
         for name in args_names:
             if name == 'args':
+                # if argument name is *special name* **args**
+                # we append a reference to self.args
                 pargs.append(self.args)
             elif name == 'self':
+                # else if argment name is *special name* **self**
                 if ArgParseInated in inspect.getmro(func.__cls__):
+                    # if the class that holds the function is subclass of
+                    # ArgParseInated we'll instantiate it, passing some
+                    # parameter
                     pargs.append(func.__cls__(self, **new_attributes))
                 else:
+                    # else we'll instatiate the class without parameters
                     pargs.append(func.__cls__())
             else:
+                # else we'll append the argument getting it from the self.args
                 pargs.append(getattr(self.args, name))
+        # for every argument in keyword arguments
         for name in kwargs_name:
             if name == 'args':
+                # if argument name is *special name* **args**
+                # we set for the arg a reference to self.args
                 kwargs[name] = self.args
             elif name in self.args:
+                # else if name is in self.args we'll set the relative value.
                 kwargs[name] = getattr(self.args, name)
+        # try to import the builtin module
         try:
             import __builtin__
         except ImportError:
             import builtins as __builtin__
+        # set the **global** write function
         setattr(__builtin__, self.write_name, self.write)
+        # set the **global** write line function
         setattr(__builtin__, self.write_line_name, self.writeln)
+        # let's execute the command and assign the returned value to retval
         retval = command(*pargs, **kwargs)
         if self.auto_exit:
+            # if we have auto_exit is True
             if retval is None:
+                # if retval is None we'll raise an error
                 raise TypeError("Return value must not be None")
             elif isinstance(retval, basestring):
+                # else if retval is a string we will exit with the message and
+                # ERRORCODE is equal to 0
                 self.exit(0, retval)
             elif isinstance(retval, int):
+                # else if retval is an integer we'll exits with it as ERRORCODE
                 self.exit(retval)
             elif isinstance(retval, (tuple, list,)):
+                # if retval is a tuple or a list we'll exist with ERRORCODE and
+                # message
                 self.exit(retval[0], retval[1])
             self.exit()
         else:
+            # else if auto_exit is not True
+            # we'll simply return  retval
             return retval
 
     def _tounicode(self, string):
+        """Silly converter"""
         if not isinstance(string, unicode):
+            # if string is not unicode we'll comverte it
             string = unicode(string, self.encoding)
         return string
 
     def write(self, *string):
         """
-        Scrive sull'output o sullo STDOUT.
+        Writes to the output
         """
         self._output.write(' '.join([self._tounicode(s) for s in string]))
+        return self
 
     def writeln(self, *string):
         """
-        Scrive una riga sull'output o sullo STDOUT.
+        Wrtie lines to the output
         """
         self._output.write(' '.join([
             self._tounicode(s) for s in string]) + linesep)
+        return self
 
     def exit(self, status=EXIT_OK, message=None):
         """
         Terminate the script.
         """
         if self.msg_on_error_only:
+            # if msg_on_error_only is True
             if status != EXIT_OK:
+                # if we have an error we'll exit with the message also.
                 self.parser.exit(status, message)
             else:
+                # else we'll exit with the status ongly
                 self.parser.exit(status, None)
         else:
+            # else if msg_on_error_only is not True
+            # we'll exit with the status and the message
             self.parser.exit(status, message)
 
 
 def arg(*args, **kwargs):
     """
-    Decora una funzione o un metodo di classe per aggiungerlo ai parser degli
-    argomenti.
+    Dcorates a function or a class method to add to the argument parser
     """
     def decorate(func):
         """
-        Docora la funzione.
+        Decorate
         """
+        # we'll set the command name with the passed cmd_name argument, if
+        # exist, else the command name will be the function name
         func.__cmd_name__ = kwargs.pop('cmd_name', func.__name__)
+        # retrieve the class (SillyClass)
         func.__cls__ = utils.check_class()
         if not hasattr(func, '__arguments__'):
+            # if the funcion hasn't the __arguments__ yet, we'll setup them
+            # using get_functarguments.
             func.__arguments__ = utils.get_functarguments(func)
         if len(args) or len(kwargs):
+            # if we have some argument or keyword argument
+            # we'll try to get the destination name from the kwargs ('dest')
+            # else we'll use the last arg name as destination
             arg_name = kwargs.get(
                 'dest', args[-1].lstrip('-').replace('-', '_'))
             try:
+                # we try to get the command index.
                 idx = func.__named__.index(arg_name)
+                # and delete it from the named list
                 del func.__named__[idx]
+                # and delete it from the arguments list
                 del func.__arguments__[idx]
             except ValueError:
                 pass
+            # append the args and kwargs to the function arguments list
             func.__arguments__.append((args, kwargs,))
         if func.__cls__ is None and isinstance(func, types.FunctionType):
+            # if the function don't have a class and is a FunctionType
+            # we'll add it directly to he commands list.
             ap_ = ArgParseInator()
             if func.__cmd_name__ not in ap_.commands:
+                # we'll add it if not exists
                 ap_.commands[func.__cmd_name__] = func
         return func
     return decorate
@@ -438,22 +495,37 @@ def arg(*args, **kwargs):
 
 def class_args(cls):
     """
-    Decora una classe *preparandola* per gestire il parser di argomenti.
+    Decorates a class to handle the arguments parser.
     """
+    # get the Singleton
     ap_ = ArgParseInator()
+    # collect special vars (really need?)
     utils.collect_appendvars(ap_, cls)
+    # set class reference
     cls.__cls__ = cls
     cmds = {}
+    # get eventual class arguments
     cls.__arguments__ = getattr(cls, '__arguments__', [])
+    # cycle through class functions
     for func in [f for f in cls.__dict__.values()
                  if hasattr(f, '__cmd_name__')]:
+        # clear subcommands
         func.__subcommands__ = None
+        # set the parent class
         func.__cls__ = cls
+        # assign to commands dict
         cmds[func.__cmd_name__] = func
     if hasattr(cls, '__cmd_name__') and cls.__cmd_name__ not in ap_.commands:
+        # if che class has the __cmd_name__ attribute and is not already present
+        # in the ArgParseInator commands
+        # set the class subcommands
         cls.__subcommands__ = cmds
+        # add the class as ArgParseInator command
         ap_.commands[cls.__cmd_name__] = cls
     else:
+        # else if we don't have a __cmd_name__
+        # we will add all the functions directly to the ArgParseInator commands
+        # if it don't already exists.
         for name, func in cmds.items():
             if name not in ap_.commands:
                 ap_.commands[name] = func
@@ -462,24 +534,30 @@ def class_args(cls):
 
 def ap_arg(*args, **kwargs):
     """
-    Semplice funzione per ritornare una tupla per l'add_argument del parser.
+    Silly function to return a tuple for add_argument parser.
     """
     return args, kwargs
 
 
 def cmd_auth(auth_phrase=None):
     """
-    Imposta l'autorizzazione per un comando o sottocomando.
+    set authorization for command or subcommand.
     """
     def decorate(func):
         """
-        Decora la funzione.
+        decorates the funcion
         """
+        # get the Singleton
         ap_ = ArgParseInator()
+        # set the authorization name
         auth_name = id(func)
         if auth_phrase is None:
+            # if we don't have a specific auth_phrase we set the
+            # **authorization needed** to True
             ap_.auths[auth_name] = True
         else:
+            # else if we have a specific auth_phrase we set it for the
+            # command authorization
             ap_.auths[auth_name] = str(auth_phrase)
         return func
     return decorate
@@ -491,12 +569,16 @@ def import_commands(commands_package):
     """
     import pkgutil
     try:
+        # try to import commands module
         mod = __import__(commands_package)
     except ImportError:
         mod = None
     if mod:
-        for loader, name, ispkg in pkgutil.iter_modules(mod.__path__):
+        # if we have a commands module
+        # we iter the modules and try to import them
+        for _loader, name, _ in pkgutil.iter_modules(mod.__path__):
             try:
+                # try to import the module
                 __import__("{}.{}".format(commands_package, name))
             except ImportError:
                 pass
@@ -508,11 +590,14 @@ def import_commands_folder(commands_folder):
     """
     import importlib
     import os
-    commands = os.path.split(commands_folder)[1]
+    # get folder basename
+    commands = os.path.basename(commands_folder)
     for filename in os.listdir(commands_folder):
+        # for each filename we will get module name
         mod_name = os.path.splitext(filename)[0]
         try:
+            # try to import module
             importlib.import_module("{}.{}".format(commands, mod_name))
         # except ImportError as err:
-        except Exception as err:
-            print (err)
+        except StandardError as err:
+            print err

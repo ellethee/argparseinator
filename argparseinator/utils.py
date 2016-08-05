@@ -27,14 +27,16 @@ SUBCOMMANDS_LIST_TITLE = "Sub Commands"
 SUBCOMMANDS_LIST_DESCRIPTION = "Sub commands for {}"
 
 
-class SillyClass(object):
+class SillyClass(object): # pylint: disable=too-few-public-methods
     """
     SIlly class.
     """
     __shared_arguments__ = []
     __arguments__ = []
+    __cls_name__ = ''
 
     def __init__(self, **kwargs):
+        # set all parameters
         self.__dict__.update(**kwargs)
 
 
@@ -55,7 +57,7 @@ class Singleton(type):
 
 class SubcommandHelpFormatter(argparse.RawDescriptionHelpFormatter):
     """
-    Classe per la formattazione dell' help
+    Help Formatter
     """
     def _format_action(self, action):
         parts = super(SubcommandHelpFormatter, self)._format_action(action)
@@ -66,25 +68,27 @@ class SubcommandHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
 def check_class():
     """
-    Ritorna il nome della classe per la frame attuale.
-    Se il risultato è **None** vuol dire che la chiamata è fatta da un modulo.
+    Return the class name for the current frame.
+    If the result is ** None ** means that the call is made from a module.
     """
+    # get frames
     frames = inspect.stack()
     cls = None
-    for frame in frames[1:]:
-        if frame[3] == "<module>":
-            # At module level, go no further
-            break
-        elif '__module__' in frame[0].f_code.co_names:
-            cls = SillyClass(**frame[0].f_locals)
-            cls.__cls_name__ = frame[0].f_code.co_name
-            break
+    # should be the third frame
+    # 0: this function
+    # 1: function/decorator
+    # 2: class that contains the function
+    if len(frames) > 2:
+        frame = frames[2][0]
+        if '__module__' in frame.f_code.co_names:
+            cls = SillyClass(**frame.f_locals)
+            cls.__cls_name__ = frame.f_code.co_name
     return cls
 
 
 def collect_appendvars(ap_, cls):
     """
-    colleziona eleminti per le liste.
+    colleziona elementi per le liste.
     """
     for key, value in cls.__dict__.items():
         if key.startswith('appendvars_'):
@@ -124,9 +128,9 @@ def string_or_bool(value):
     elif value.lower() in ['f', 'false']:
         value = False
     elif str.isdigit(str(value)):
-        value = int(value) > 0
+        value = int(value) != 0
     else:
-        value = str(value)
+        value = str(value) # pylint: disable=redefined-variable-type
     return value
 
 
