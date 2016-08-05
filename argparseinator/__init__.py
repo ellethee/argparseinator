@@ -6,7 +6,7 @@
 from __future__ import print_function
 __file_name__ = "__init__.py"
 __author__ = "luca"
-__version__ = "1.0.11"
+__version__ = "1.0.13"
 __date__ = "2014-10-23"
 
 import sys
