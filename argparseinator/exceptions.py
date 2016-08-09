@@ -46,3 +46,10 @@ class ArgParseInatorNotValidAuthorization(ArgParseInatorError):
     def __init__(self):
         super(ArgParseInatorNotValidAuthorization, self).__init__(
             228, "Not valid authorization")
+
+
+class ArgParseInatorConfigError(ArgParseInatorError):
+    """Not valid Authorization"""
+    def __init__(self, errmsg="Configuration error"):
+        super(ArgParseInatorConfigError, self).__init__(
+            229, errmsg)

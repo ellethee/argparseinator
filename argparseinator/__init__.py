@@ -4,11 +4,6 @@
     silly but funny thing thats can help you to manage argparse and functions
 """
 from __future__ import print_function
-__file_name__ = "__init__.py"
-__author__ = "luca"
-__version__ = "1.0.13"
-__date__ = "2014-10-23"
-
 import sys
 import types
 import inspect
@@ -17,6 +12,7 @@ import os
 import argparse
 from argparseinator import utils
 from argparseinator import exceptions
+__version__ = "1.0.13"
 EXIT_OK = 0
 
 
@@ -34,24 +30,9 @@ class ArgParseInated(object): # pylint: disable=too-few-public-methods
         self.parseinator = parseinator
         # and some shortcut
         self.args = parseinator.args
+        self.cfg = parseinator.cfg
         self.write = parseinator.write
         self.writeln = parseinator.writeln
-        if parseinator.cfg_factory:
-            # if we have a cfg_factory
-            try:
-                # we try to load a config with the factory
-                self.cfg = parseinator.cfg_factory(parseinator.cfg_file)
-            except StandardError as error:
-                # if we have an exception we will rise an error.
-                if parseinator.cfg_error:
-                    # using the config.error function if we have one
-                    parseinator.cfg_error(error, parseinator)
-                else:
-                    # or the oricinal exception
-                    raise
-        else:
-            # else cfg will be None
-            self.cfg = None
         # clall the initialization function
         self.__preinator__()
 
@@ -94,9 +75,11 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
     # authorization phrase
     auth_phrase = None
     # write name
-    write_name = "write"
+    _write_name = "write"
     # write line name
-    write_line_name = 'writeln'
+    _write_line_name = 'writeln'
+    # global ArgParseInator instance name
+    _argpi_name = '__argpi__'
     # auto_exit
     auto_exit = False
     msg_on_error_only = False
@@ -106,17 +89,16 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
     appendvars = {}
     error = None
     cfg_file = None
-    cfg_factory = None
-    cfg_error = None
+    _cfg_factory = None
     # default encoding
     encoding = 'utf-8'
 
     def __init__( # pylint: disable=too-many-arguments
-            self, add_output=None, args=None, auth_phrase=None,
-            never_single=None, formatter_class=None, write_name=None,
-            write_line_name=None, auto_exit=None, default_cmd=None,
-            setup=None, ff_prefix=None, error=None, msg_on_error_only=None,
-            config=None, skip_init=False,
+            self, add_output=None, argpi_name=None, args=None,
+            auth_phrase=None, auto_exit=None, config=None, default_cmd=None,
+            error=None, ff_prefix=None, formatter_class=None,
+            msg_on_error_only=None, never_single=None, setup=None,
+            skip_init=False, write_line_name=None, write_name=None,
             **argparse_args):
         if skip_init:
             return
@@ -144,25 +126,30 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
         self.argparse_args.update(**argparse_args)
         # setup formatter clas
         self.formatter_class = formatter_class or self.formatter_class
+        # setup the global ArgParseInator instance name
+        self._argpi_name = argpi_name or self._argpi_name
         # setup the name for the write function
-        self.write_name = write_name or self.write_name
+        self._write_name = write_name or self._write_name
         # setup the name for the writeln funcion
-        self.write_line_name = write_line_name or self.write_line_name
+        self._write_line_name = write_line_name or self._write_line_name
         # setup the default command
         self.default_cmd = default_cmd or self.default_cmd
         # setup the setup function
         self.setup = setup or self.setup
         # setup the error functino
         self.error = error or self.error
-        if isinstance(config, (list, tuple)):
+        if isinstance(config, dict):
+            self.cfg = config
+        elif isinstance(config, (list, tuple)):
             # if we have a config tuple/list
             # setup the config file
             self.cfg_file = config[0]
             # setup the config factory
-            self.cfg_factory = config[1]
+            setattr(self, '_cfg_factory', types.MethodType(config[1], self))
             if len(config) > 2:
                 # if config has 3 elements setup the config error too
-                self.cfg_error = config[2]
+                setattr(self, '_cfg_error', types.MethodType(config[2], self))
+                # self._cfg_error = config[2]
 
 
     def _compile(self):
@@ -183,7 +170,7 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             self.parser.add_argument(
                 '--encoding', default="utf-8",
                 help="Encoding for output file.")
-        if self.cfg_factory:
+        if self._cfg_factory:
             # if we have a config factory add the config options
             self.parser.add_argument(
                 '-c', '--config', metavar="FILE", default=self.cfg_file,
@@ -262,7 +249,7 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
                     import codecs
                     self._output = codecs.open(
                         self.args.output, 'wb', encoding=self.args.encoding)
-            if self.cfg_factory:
+            if self._cfg_factory:
                 # if we have a config factory setup the config file with the
                 # right param
                 self.cfg_file = self.args.config
@@ -322,16 +309,25 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
         # check authorization
         if not self.check_auth(id(command)):
             return 0
-        # let's setup something.
-        for setup_func in self.setup:
-            setup_func(self)
         # let's execute the command.
         return self._execute(func, command, **new_attributes)
+
+    def _cfg_error(self, error):
+        """Config error"""
+        raise exceptions.ArgParseInatorConfigError(str(error))
 
     def _execute(self, func, command, **new_attributes):
         """
         Execute command.
         """
+        if self._cfg_factory:
+            # if we have a cfg_factory
+            try:
+                # we try to load a config with the factory
+                self.cfg = self._cfg_factory(self.cfg_file)
+            except StandardError as error:
+                # raise se exception
+                self._cfg_error(error)
         # let's get command(function) argspec
         arg_specs = inspect.getargspec(command)
         if arg_specs.defaults:
@@ -383,9 +379,14 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
         except ImportError:
             import builtins as __builtin__
         # set the **global** write function
-        setattr(__builtin__, self.write_name, self.write)
+        setattr(__builtin__, self._write_name, self.write)
         # set the **global** write line function
-        setattr(__builtin__, self.write_line_name, self.writeln)
+        setattr(__builtin__, self._write_line_name, self.writeln)
+        # set the global reference to th ArgParseInator instance
+        setattr(__builtin__, self._argpi_name, self)
+        # let's setup something.
+        for setup_func in self.setup:
+            setup_func(self)
         # let's execute the command and assign the returned value to retval
         retval = command(*pargs, **kwargs)
         if self.auto_exit:
@@ -460,7 +461,8 @@ def arg(*args, **kwargs):
         """
         # we'll set the command name with the passed cmd_name argument, if
         # exist, else the command name will be the function name
-        func.__cmd_name__ = kwargs.pop('cmd_name', func.__name__)
+        func.__cmd_name__ = kwargs.pop(
+            'cmd_name', getattr(func, '__cmd_name__', func.__name__))
         # retrieve the class (SillyClass)
         func.__cls__ = utils.check_class()
         if not hasattr(func, '__arguments__'):
@@ -567,7 +569,7 @@ def cmd_auth(auth_phrase=None):
 
 def import_commands(commands_package):
     """
-    Imports commands modules for the script.
+    Imports commands from package.
     """
     import pkgutil
     try:
@@ -584,21 +586,3 @@ def import_commands(commands_package):
                 __import__("{}.{}".format(commands_package, module[1]))
             except ImportError:
                 pass
-
-
-def import_commands_folder(commands_folder):
-    """
-    Imports commands modules for the script.
-    """
-    import importlib
-    # get folder basename
-    commands = os.path.basename(commands_folder)
-    for filename in os.listdir(commands_folder):
-        # for each filename we will get module name
-        mod_name = os.path.splitext(filename)[0]
-        try:
-            # try to import module
-            importlib.import_module("{}.{}".format(commands, mod_name))
-        # except ImportError as err:
-        except StandardError as err:
-            print (err)

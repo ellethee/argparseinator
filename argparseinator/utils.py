@@ -183,7 +183,7 @@ def get_functarguments(func):
     else:
         args = argspec.args
         kwargs = {}
-    if args[0] == 'self':
+    if args and args[0] == 'self':
         args.pop(0)
     func.__named__ = []
     arguments = []
