@@ -8,11 +8,12 @@ putting into the \__doc__\ string the function description.
 
 .. code-block:: python
 
-    import argparseinator    
+    from argparseinator import ArgParseInator
+    from argparseinator import arg
 
 
-    @argparseinator.arg("name", help="The name to print")
-    @argparseinator.arg('-s', '--surname', default='', help="optional surname")
+    @arg("name", help="The name to print")
+    @arg('-s', '--surname', default='', help="optional surname")
     def print_name(name, surname=""):
         """
         Will print the passed name.
@@ -32,8 +33,7 @@ Then verify the commands passed to the script.
 .. code-block:: python
 
     if __name__ == "__main__":
-        inator = argparseinator.ArgParseInator(description="Silly script")
-        inator.check_command()
+        ArgParseInator(description="Silly script").check_command()
 
 try out your script help
 

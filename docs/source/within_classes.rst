@@ -1,4 +1,4 @@
-.. _class_dec:        
+.. _within_classes:
 
 ==============
 Within classes
@@ -128,3 +128,41 @@ using the **__arguments__** attribute.
             """
             print prefix, name
         ...
+
+Importing commands packages
+---------------------------
+A good way to keep our code ordered is to put modules under a subfolder which
+can become, for convenience, a package. So we can have our structure like this.
+
+.. code-block:: bash
+
+    ├── commands
+    │   ├── admin.py
+    │   ├── __init__.py
+    │   ├── user.py
+    ├── multicommand.py
+
+And our multicommand.py should looks like this.
+
+.. code-block:: python
+    :caption: multicommand.py
+    :name: multicommand2.py
+
+    from argparseinator import ArgParseInator
+    from commands import admin, user
+
+    ArgParseInator().check_command()
+
+But if we want to add other command modules we have to import all of them.
+And to do this we should modify our multicommand.py script.
+Or we can use the :meth:`import_commands` function which loads all modules in
+a package.
+
+.. code-block:: python
+
+    from argparseinator import ArgParseInator, import_commands
+    import_commands('commands')
+
+    ArgParseInator().check_command()
+
+... more easy

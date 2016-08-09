@@ -2,35 +2,56 @@
 ArgParseInator object
 ======================
 
-.. class:: ArgParseInator(add_output=None, args=None, auth_phrase=None, \
-                           never_single=None , write_name=None, \
-                           write_line_name=None, auto_exit=None, \
-                           default_cmd=None, \**kwargs)
+.. class:: ArgParseInator(add_output=None, argpi_name=None, args=None, auth_phrase=None, \
+            auto_exit=None, config=None, default_cmd=None, error=None, \
+            ff_prefix=None, formatter_class=None, msg_on_error_only=None, \
+            never_single=None, setup=None, \
+            write_line_name=None, write_name=None, \
+            **argparse_args)
 
    Create a new :class:`ArgParseInator` object. All parameters should be passed
    as keyword arguments. 
 
-   * add_output_ - Enable the output option (default: ``False``)
+   * add_output_ - Enable the output option (default: ``False``).
 
-   * args_ - List of argument to pass to the parser (default: ``None``)
+   * argpi_name_ - Name for the global reference of the Argparseinator
+     instance (default: ``__argpi__``).
 
-   * auth_phrase_ - Global authorization phrase (default: ``None``)
+   * args_ - List of argument to pass to the parser (default: ``None``).
 
-   * never_single_ - Force argp to have one command even is the only one
-     (default: ``False``)
-
-   * write_name_ - Name for the global function which calls
-     :meth:`ArgParseInator.write` (default: "write")
-
-   * write_line_name_ - Name for the global function which calls
-     :meth:`ArgParseInator.writeln` (default: "writeln")
+   * auth_phrase_ - Global authorization phrase (default: ``None``).
 
    * auto_exit_ - if True ArgParseInator exits just executed the command 
-     using the returned value(s) as status code
+     using the returned value(s) as status code.
+
+   * config_ - Tuple containing config filename, config factory and optionally
+     a config error handler.
 
    * default_cmd_ - Name of the default command to set.
 
-   * kwargs_ - All standard :class:`ArgumentParser` parameters.
+   * error_ - Error handler to pass to parser.
+
+   * ff_prefix_ - fromfile_prefix_chars to pass to the parser.
+
+   * formatter_class_ - A class for customizing the help output.
+
+   * msg_on_error_only_ - if auto_exit_ is ``True``, it outputs the command
+     message only if there is an exception.
+
+   * never_single_ - Force to have one command, even it is the only one
+     (default: ``False``).
+
+   * setup_ - List of functions (having the ArgParseInator class as parameter)
+     that will be executed after the arguments parsing and just before to
+     execute the command.
+
+   * write_name_ - Name for the global function which calls
+     :meth:`ArgParseInator.write` (default: ``write``).
+
+   * write_line_name_ - Name for the global function which calls
+     :meth:`ArgParseInator.writeln` (default:``writeln``).
+
+   * argparse_args_ - All standard :class:`ArgumentParser` parameters.
 
 
 Parameters
@@ -61,6 +82,11 @@ argument. If the argument is passed the :class:`ArgParseInator`
 
 Will create a file named **filename.txt** containing the line
 **Hello my name is Luca**
+
+argpi_name
+-----------
+The **Argparseinator** instance can be accessed globally via the name ``__argpi__``.
+Anyway you can change the global name using this parameter.
 
 args
 ----
@@ -113,9 +139,59 @@ auth_phrase
 Set a global authorization phrase to protect special commands.
 See :ref:`authorize_commands`
 
+auto_exit
+---------
+If True ArgParseInator exits just executed the command using the returned
+value(s) as status code.
+
+If the command function return only a numeric value it will be used as status
+code exiting the script if the command function returns a touple with numeric
+and string value the string will be printed as message.
+
+.. code-block:: python
+
+    @arg()
+    def one():
+        # will exit from script with status code 1
+        return 1
+
+    @arg()
+    def two():
+        # will exit from script with status code 2 and print the message
+        # "Error"
+        return 2, "Error."
+
+config
+------
+It could happen that we need a configuration dictionary or some else,
+mostly loaded from a file. We can specify a dictionary with the configuration
+or a tuple to handle the configuration file and optionally a configuration
+error handler.
+It will be available as **self.cfg** if you use a subclass of ArgParseInated or
+globally using `__argpi__ <argpi_name_>`_.**cfg**
+
+.. code-block:: python
+
+    
+
+    def cfg_factory(filename):
+        """Config factory"""
+        import yaml
+        return yaml.load(filename)
+
+    def cfgname():
+        """Prints name"""
+        print __argpi__.cfg['name']
+
+    Argparseinator(config=('default.cfg', cfg_factory)).check_command()
+
+.. note:
+
+    The config
+
 never_single
 ------------
-When we have only one decorated function :class:ArgParseInator automatically
+When we have only one decorated function :class:`ArgParseInator` automatically
 set it as default and adds all it arguments to the top level parser.
 Anyway we can tell to :class:`ArgParseInator` to keep it as a command by setting
 the **never_single** param to ``True``.
@@ -166,37 +242,59 @@ As write_name sets the name for the global shortcut :meth:`writeln`
 (see :ref:`write_writeln`)
 
 
-auto_exit
----------
-If True ArgParseInator exits just executed the command using the returned
-value(s) as status code.
-
-If the command function return only a numeric value it will be used as status
-code exiting the script if the command function returns a touple with numeric
-and string value the string will be printed as message.
-
-.. code-block:: python
-
-    @arg()
-    def one():
-        # will exit from script with status code 1
-        return 1
-
-    @arg()
-    def two():
-        # will exit from script with status code 2 and print the message
-        # "Error"
-        return 2, "Error."
-
 default_cmd
--------------
+-----------
 When we have multiple commands we can set a default one wich will be used
 if :class:`ArgParseInator` can't find a valid command in ``sys.argv``
 
 
-kwargs
-------
-\**kwargs are all the parameters to pass to the :class:`ArgumentParser`.
+error
+-----
+Usually if we need to handle argparse error we have to subclass the
+ArgumentParser and override the error method. With the :class:`ArgParseInator`
+we can just pass the handler as :keyword:`error` parameter.
+
+.. code-block:: python
+
+    def error_hander(self, message):
+        """Error handler"""
+        print "And the error is ...", message
+
+    ArgParseInator(error=error_hander).check_command()
+
+
+ff_prefix
+---------
+It's a shortcut for fromfile_prefix_chars_ except if is True automatically use
+the **@** as fromfile_prefix_chars.
+
+
+msg_on_error_only
+-----------------
+if auto_exit_ is True, it outputs the command message only if there is an exception.
+
+
+setup
+-----
+Is a list or tuple of functions that will be executed just before execute the
+command and has as parameter the ArgParseInator instance.
+
+.. code-block:: python
+
+    def setup_1(inator):
+        """first setup"""
+        inator.args.name = 'Luca'
+
+    def setup_2(inator):
+        """second setup"""
+        inator.args.name = inator.args.name.upper()
+
+    ArgParseInator(setup=[setup_1, setup_2]).check_command()
+
+
+argparse_args
+-------------
+\**argparse_args are all the parameters to pass to the :class:`ArgumentParser`.
 
 .. note::
 
@@ -240,7 +338,7 @@ kwargs
 
 .. _prefix_chars: https://docs.python.org/2/library/argparse.html#prefix_chars
 
-.. _fromfile_prefix_chars: https://docs.python.org/2/library/argparse.html#fromfile_prefix_chars
+.. _fromfile_prefix_chars: https://docs.python.org/2/library/argparse.html#fromfile-prefix-chars
 
 .. _argument_default: https://docs.python.org/2/library/argparse.html#argument_default
 
@@ -276,14 +374,17 @@ Methods
 
 .. _write_writeln:
 
-:meth:`write` and :meth:`writeln`
-=================================
+:class:`__argpi__`, :meth:`write` and :meth:`writeln`
+=====================================================
 Just before execute the command :class:`ArgParseInator` adds two global
 shortcuts for it's methods :meth:`ArgParseInator.write` and
 :meth:`ArgParseInator.writeln` respectvly :meth:`write` and :meth:`writeln`
+and the global reference to the instance as :class:`__argpi__`.
 
-Which cam be useful within function insted use the 
-```ArgParseInator().write()``` and ```ArgParseInator().writeln()``` form.
+Which can be useful within function insted use the 
+```ArgParseInator().write()```, ```ArgParseInator().writeln()``` and 
+```ArgParseInator()``` form.
 
 The two methos name can be changed via the write_name_ and
-write_line_name_ arguments while instatiate the ArgParseInator.
+write_line_name_ arguments and the global instance name via the argpi_name_ 
+while instatiate the ArgParseInator.

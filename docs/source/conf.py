@@ -14,6 +14,7 @@
 
 import sys
 import os
+from datetime import datetime
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -48,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ArgParseInator'
-copyright = u'2014, ellethee'
+copyright = u'2014-{} ellethee'.format(datetime.today().year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -209,7 +210,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'ArgParseInator.tex', u'ArgParseInator Documentation',
-   u'ellethee', 'manual'),
+   u'ellethee <luca800@gmail.com>', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -239,7 +240,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'argparseinator', u'ArgParseInator Documentation',
-     [u'ellethee'], 1)
+     [u'ellethee <luca800@gmail.com>'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -253,7 +254,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'ArgParseInator', u'ArgParseInator Documentation',
-   u'ellethee', 'ArgParseInator', 'One line description of project.',
+   u'ellethee <luca800@gmail.com>', 'ArgParseInator', 'One line description of project.',
    'Miscellaneous'),
 ]
 
