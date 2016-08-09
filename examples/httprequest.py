@@ -18,7 +18,7 @@ def get(url):
         writeln(str(response.status_code), response.reason)
 
 
-@arg('var', help="Posta data in NAME=VALUE form", nargs="*")
+@arg('var', help="Post data in NAME=VALUE form", nargs="*")
 @arg('url', help="url to retrieve")
 def post(url, var):
     """Post data to an url."""
@@ -32,7 +32,6 @@ def post(url, var):
 
 if __name__ == "__main__":
     ArgParseInator(
-        description="Simple http retrieving",
         add_output=True,
         default_cmd="get",
     ).check_command()

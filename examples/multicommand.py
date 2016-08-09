@@ -6,17 +6,16 @@
 # If we specify here out version ArgParseInator will include it for us.
 __version__ = "1.2.3"
 
+import os
 from argparseinator import ArgParseInator, import_commands
 
 
 if __name__ == "__main__":
-    # Let's import commands for the script which resides into the folder
-    # commands
-    import_commands('./commands')
+    # Let's import commands for the script which resides into the commands
+    # package.
+    import_commands('commands')
     # Ok, Istantiate ArgParseInator
     ArgParseInator(
-        # Our script description
-        description="Modular multi commands with subcommands example",
         # Enable the --output if we want to write the result on file.
         add_output=True,
         # We will automatically exit from the script with the command return

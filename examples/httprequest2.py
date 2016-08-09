@@ -37,6 +37,5 @@ class HttpRequest(ArgParseInated):
 
 if __name__ == "__main__":
     ArgParseInator(
-        description="Simple http retrieving",
         add_output=True,
     ).check_command(session=requests.Session())
