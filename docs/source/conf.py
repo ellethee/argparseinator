@@ -30,10 +30,15 @@ from datetime import datetime
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinxcontrib.spelling',
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
 ]
+# spelling options 
+spelling_lang = 'en_US'
+spelling_show_suggestions = True
+spelling_word_list_filename = 'spelling_wordlist.txt'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -202,7 +207,11 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+'preamble': "".join((
+    '\DeclareUnicodeCharacter{00A0}{ }',  # NO-BREAK SPACE
+    '\DeclareUnicodeCharacter{251C}{+}',  # BOX DRAWINGS LIGHT VERTICAL AND RIGHT
+    '\DeclareUnicodeCharacter{2514}{+}',  # BOX DRAWINGS LIGHT UP AND RIGHT
+    )),
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -272,4 +281,4 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/2': None}

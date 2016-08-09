@@ -35,13 +35,13 @@ Then verify the commands passed to the script.
     if __name__ == "__main__":
         ArgParseInator(description="Silly script").check_command()
 
-try out your script help
+Try out your script help
 
 .. code-block:: bash
 
     $ python apitest.py -h
 
-will output
+Will output
 
 .. code-block:: bash
 
@@ -60,13 +60,13 @@ will output
       -s SURNAME, --surname SURNAME
                             optional surname
 
-try out your script
+Try out your script
 
 .. code-block:: bash
 
     $python apitest.py --surname=Smith John
 
-will output
+Will output
 
 .. code-block:: bash
 
@@ -75,5 +75,5 @@ will output
 .. note::
 
     If we have only one function decorated it will become the default command
-    and Argparseinator appends the function discription to the main
+    and Argparseinator appends the function description to the main
     parser's description.

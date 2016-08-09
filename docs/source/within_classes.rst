@@ -3,18 +3,18 @@
 ==============
 Within classes
 ==============
-We can also use classes for define our commands and subcommands. 
+We can also use classes for define our commands and sub commands. 
 There are three properties that we can use within classes.
 
-* :attr:`__cmd_name__`: Declare the command name. In this way the class becames
-  a SubCommand container.
+* :attr:`__cmd_name__`: Declare the command name. In this way the class becomes
+  a Sub Commands container.
 
-* :attr:`__arguments__`: Arguments list. When the class is a subcommands
+* :attr:`__arguments__`: Arguments list. When the class is a sub commands
   container we can set a list of attributes for the command itself.
 
-* :attr:`__shared_arguments__`: Shared arguments list. in any case we can
+* :attr:`__shared_arguments__`: Shared arguments list. In any case we can
   declare a list of arguments that will be shared by all commands or
-  subcommands.
+  sub commands.
 
 The way we declare the class using these properties changes the behavior of 
 ArgParseInator. Always using the :ref:`enable_class` decoration for the class
@@ -33,8 +33,8 @@ of course.
 
 First way (commands container)
 ------------------------------
-We can declare commands simply adding arg to class methods to turn the
-class into a command container.
+We can turn a class in a commands container using the ``@class_args`` decorator
+and using the ``@arg`` decorator with the class methods to turn them into commands
 
 .. code-block:: python
 
@@ -60,8 +60,8 @@ and all decorated methods will become *sub-commands*.
 
     @class_args
     class SubCommandsContainer(object):
-        """SubCommands container class."""
-        # our command is dosub
+        """Sub Commands container class."""
+        # our command will be dosub
         __cmd_name__ = 'dosub'
         prefix = "The name is"
 
@@ -84,7 +84,7 @@ be added to all commands contained in the class.
     @class_args
     class CommandsContainer(object):
         """
-        CommandsContainer class.
+        Commands Container class.
         """
         # share arguments with commands.
         __shared_arguments__ = [
@@ -101,9 +101,9 @@ be added to all commands contained in the class.
 
 .. _way_4:
 
-Sub-commads container and command arguments
--------------------------------------------
-With the :ref:`way_2` we can also specify a command specific argumengs list
+Sub commands container and command arguments
+--------------------------------------------
+With the :ref:`way_2` we can also specify a command specific arguments list
 using the **__arguments__** attribute.
 
 .. code-block:: python
@@ -111,14 +111,14 @@ using the **__arguments__** attribute.
     @class_args
     class SubCommandsContainer(object):
         """
-        CommandsContainer class.
+        Commands Container class.
         """
         # our command is dosub
         __cmd_name__ = 'dosub'
         # our command arguments
         __arguments__ = [
             ap_arg('--prefix', help="prefix string", default="The name is..")]
-        # the subcommand shared arguments.
+        # the sub command shared arguments.
         __shared_arguments__ = [ap_arg('name', help="The Name")]
 
         @arg()
@@ -131,7 +131,7 @@ using the **__arguments__** attribute.
 
 Importing commands packages
 ---------------------------
-A good way to keep our code ordered is to put modules under a subfolder which
+A good way to keep our code ordered is to put modules under a sub folder which
 can become, for convenience, a package. So we can have our structure like this.
 
 .. code-block:: bash
@@ -165,4 +165,4 @@ a package.
 
     ArgParseInator().check_command()
 
-... more easy
+... More easy

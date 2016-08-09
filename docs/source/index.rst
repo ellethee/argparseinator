@@ -2,9 +2,9 @@ ArgParseInator
 ===============
 .. warning::
 
-    My english really sucks!
+    My English really sucks!
     So, if you wanna to correct this documentation or if you want to report 
-    some error, i'll very pleased to receive your suggestions.
+    some error. I'll very pleased to receive your suggestions.
     
     | email: luca800@gmail.com 
     | documentation_

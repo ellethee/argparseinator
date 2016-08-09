@@ -21,7 +21,7 @@ Add arguments to parser (**ap_arg**)
 ------------------------------------
 **ap_arg** is not a decorator, but a silly convenience function that returns
 a tuple with positional arguments and keyword arguments.
-Useful to pass list of arguments to the parsers.
+Useful to pass list of arguments to the parser.
 
 .. code-block:: python
 
@@ -44,16 +44,16 @@ the argument becomes **--option_name** unless you use the :keyword:`flag` and th
 :keyword:`lflag` keys in the dictionary to specify the short and the long option name.
 
 ArgParseInator will use the *function* **name** as command name unless
-you pass the special param **cmd_name** that can change the the command name
-for the funcion. Or you can specify the name using the **function.__cmd_name__** form.
+you pass the special parameter **cmd_name** that can change the command name
+for the function. Or you can specify the name using the **function.__cmd_name__** form.
 
 
 .. code-block:: python
 
     # Creates an ArgParseInator command without passing parameters to **@arg**
-    # decorator. but retrieves them from the function itself.
+    # decorator. But retrieves them from the function itself.
     # it defines also the path option flags using **flag** and **lflag** keywords.
-    # and changes the command name with the funcion.__cmd_name__ form.
+    # and changes the command name with the function.__cmd_name__ form.
 
     @arg()
     def save(filename, overwrite={'action': 'store_true', 'default':False},
@@ -113,7 +113,7 @@ So we would like to protect some commands with a *auth phrase*.
 
 And here comes the **@cmd_auth** decorator. 
 We can pass the **auth_phrase** parameter which will be used to check the
-autorization for the command or call il without the parameter, in this case it
+authorization for the command or call it without the parameter, in this case it
 will use the global :ref:`auth_phrase` passed to the ArgParseInator instance.
 
 .. code-block:: python
@@ -170,7 +170,7 @@ parent of the function (if it is inside a class).
     def print_foo(foo):
         # code_here
 
-    # We istantiate che class with a foo top level optional parameter.
+    # We instantiate the class with a foo top level optional parameter.
     inator = ArgParseInator(args=[ap_arg('--foo', help="Foo", default="bar")])
 
 Last but not least the special parameter args.
@@ -203,7 +203,7 @@ modify the commands behavior:
 * **__arguments__** set extra arguments for the command.
 
 * **__shared_arguments__** set arguments which will be shared by the class
-  subcommands
+  sub commands
 
 .. code-block:: python
 

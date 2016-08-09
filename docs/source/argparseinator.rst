@@ -145,7 +145,7 @@ If True ArgParseInator exits just executed the command using the returned
 value(s) as status code.
 
 If the command function return only a numeric value it will be used as status
-code exiting the script if the command function returns a touple with numeric
+code exiting the script if the command function returns a tuple with numeric
 and string value the string will be printed as message.
 
 .. code-block:: python
@@ -175,7 +175,7 @@ globally using `__argpi__ <argpi_name_>`_.**cfg**
     
 
     def cfg_factory(filename):
-        """Config factory"""
+        """Configuration factory"""
         import yaml
         return yaml.load(filename)
 
@@ -187,14 +187,14 @@ globally using `__argpi__ <argpi_name_>`_.**cfg**
 
 .. note:
 
-    The config
+    The configuration
 
 never_single
 ------------
 When we have only one decorated function :class:`ArgParseInator` automatically
 set it as default and adds all it arguments to the top level parser.
 Anyway we can tell to :class:`ArgParseInator` to keep it as a command by setting
-the **never_single** param to ``True``.
+the **never_single** parameter to ``True``.
 
 .. code-block:: python
 
@@ -203,7 +203,7 @@ the **never_single** param to ``True``.
     @arg('string', help="String to write")
     def write(string):
         """
-        Wrtie a string 
+        Write a string 
         """
         print string
 
@@ -244,7 +244,7 @@ As write_name sets the name for the global shortcut :meth:`writeln`
 
 default_cmd
 -----------
-When we have multiple commands we can set a default one wich will be used
+When we have multiple commands we can set a default one which will be used
 if :class:`ArgParseInator` can't find a valid command in ``sys.argv``
 
 
@@ -378,13 +378,13 @@ Methods
 =====================================================
 Just before execute the command :class:`ArgParseInator` adds two global
 shortcuts for it's methods :meth:`ArgParseInator.write` and
-:meth:`ArgParseInator.writeln` respectvly :meth:`write` and :meth:`writeln`
+:meth:`ArgParseInator.writeln` respectively :meth:`write` and :meth:`writeln`
 and the global reference to the instance as :class:`__argpi__`.
 
-Which can be useful within function insted use the 
+Which can be useful within function instead use the 
 ```ArgParseInator().write()```, ```ArgParseInator().writeln()``` and 
 ```ArgParseInator()``` form.
 
-The two methos name can be changed via the write_name_ and
+The two methods name can be changed via the write_name_ and
 write_line_name_ arguments and the global instance name via the argpi_name_ 
-while instatiate the ArgParseInator.
+while instantiate the ArgParseInator.

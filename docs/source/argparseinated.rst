@@ -3,7 +3,7 @@ ArgParseInated object
 =====================
 .. class:: ArgParseInated(parseinator, \**new_attributes)
 
-This class is intended to be subclassed and automatically expose the 
+This class is meant to create sub classes that automatically expose the 
 :meth:`write`, :meth:`writeln` methods, the :attr:`args` and :attr:`cfg`
 attributes of the :class:`ArgParseInator`.
 Plus expose all passed **new_attributes** which will passed by the
@@ -37,7 +37,7 @@ So we can use it to do some extra action before the command is execute.
 
 __preinator__
 -------------
-The original name was **__prepare__** but i've changed it to avoid problems.
+The original name was **__prepare__** but I've changed it to avoid problems.
 It's just called at the end of the :meth:`__init__` method and is intended to
 do some action before :class:`ArgParseInator` executes the command.
 
@@ -58,6 +58,6 @@ do some action before :class:`ArgParseInator` executes the command.
 
         def __preinator__(self):
             if self.args.name.lower() == 'luca':
-                self.args.name = "who? nobody?"
+                self.args.name = "who? Nobody?"
 
     ArgParseInator().check_command()
