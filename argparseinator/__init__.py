@@ -12,7 +12,7 @@ import os
 import argparse
 from argparseinator import utils
 from argparseinator import exceptions
-__version__ = "1.0.13"
+__version__ = "1.0.14"
 EXIT_OK = 0
 
 
