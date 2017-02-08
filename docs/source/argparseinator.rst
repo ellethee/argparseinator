@@ -163,8 +163,8 @@ and string value the string will be printed as message.
 
 config
 ------
-It could happen that we need a configuration dictionary or some else,
-mostly loaded from a file. We can specify a dictionary with the configuration
+It could happen that we need a configuration dictionary or something similare,
+usually loaded from a file. We can specify a dictionary with the configuration
 or a tuple to handle the configuration file and optionally a configuration
 error handler.
 It will be available as **self.cfg** if you use a subclass of ArgParseInated or
@@ -192,8 +192,8 @@ globally using `__argpi__ <argpi_name_>`_.**cfg**
 never_single
 ------------
 When we have only one decorated function :class:`ArgParseInator` automatically
-set it as default and adds all it arguments to the top level parser.
-Anyway we can tell to :class:`ArgParseInator` to keep it as a command by setting
+set it as default and adds all its arguments to the top level parser.
+We can also tell to :class:`ArgParseInator` to keep it as a command by setting
 the **never_single** parameter to ``True``.
 
 .. code-block:: python
@@ -238,14 +238,14 @@ Sets the name for the global shortcut :meth:`write` (see :ref:`write_writeln`)
 
 write_line_name
 ---------------
-As write_name sets the name for the global shortcut :meth:`writeln`
+As write_name does, it sets the name for the global shortcut :meth:`writeln`
 (see :ref:`write_writeln`)
 
 
 default_cmd
 -----------
-When we have multiple commands we can set a default one which will be used
-if :class:`ArgParseInator` can't find a valid command in ``sys.argv``
+When we have multiple commands we can set a default one to be used
+if :class:`ArgParseInator` can't find a valid one in ``sys.argv``
 
 
 error
@@ -265,8 +265,8 @@ we can just pass the handler as :keyword:`error` parameter.
 
 ff_prefix
 ---------
-It's a shortcut for fromfile_prefix_chars_ except if is True automatically use
-the **@** as fromfile_prefix_chars.
+It's a shortcut for fromfile_prefix_chars_. Note that if its value is True then it 
+automatically uses the **@** as fromfile_prefix_chars.
 
 
 msg_on_error_only
@@ -276,8 +276,8 @@ if auto_exit_ is True, it outputs the command message only if there is an except
 
 setup
 -----
-Is a list or tuple of functions that will be executed just before execute the
-command and has as parameter the ArgParseInator instance.
+A list or tuple of functions that will be executed just before executing the
+command, receives as parameter the ArgParseInator instance.
 
 .. code-block:: python
 
@@ -363,12 +363,12 @@ Methods
 
 .. method:: ArgParseInator.write(\*strings)
 
-    Write to the output (stdout or file see add_output_). If more than a string
-    is passed will be written space separated.
+    Write to the output (stdout or file, see add_output_). If more than a string
+    is passed then it will be written space separated.
 
 .. method:: ArgParseInator.writeln(\*strings)
 
-    Exactly as :meth:`ArgParseInator.write` but append a newline at the end
+    Exactly as :meth:`ArgParseInator.write` but appends a newline at the end
     of the string.
 
 
@@ -376,8 +376,8 @@ Methods
 
 :class:`__argpi__`, :meth:`write` and :meth:`writeln`
 =====================================================
-Just before execute the command :class:`ArgParseInator` adds two global
-shortcuts for it's methods :meth:`ArgParseInator.write` and
+Just before executing the command :class:`ArgParseInator` it adds two global
+shortcuts for its methods :meth:`ArgParseInator.write` and
 :meth:`ArgParseInator.writeln` respectively :meth:`write` and :meth:`writeln`
 and the global reference to the instance as :class:`__argpi__`.
 
@@ -385,6 +385,6 @@ Which can be useful within function instead use the
 ```ArgParseInator().write()```, ```ArgParseInator().writeln()``` and 
 ```ArgParseInator()``` form.
 
-The two methods name can be changed via the write_name_ and
+The two methods names can be changed via the write_name_ and
 write_line_name_ arguments and the global instance name via the argpi_name_ 
-while instantiate the ArgParseInator.
+while instantiating the ArgParseInator.
