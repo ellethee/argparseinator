@@ -4,19 +4,82 @@
     silly but funny thing thats can help you to manage argparse and functions
 """
 from __future__ import print_function
+# try to import the builtin module
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__
+from importlib import import_module
 import sys
 import types
 import inspect
 from os import linesep
 import os
+import re
 import argparse
 from argparseinator import utils
 from argparseinator import exceptions
-__version__ = "1.0.14"
+__version__ = "1.0.15"
 EXIT_OK = 0
+fun_check = re.compile(r'(?m)^.*?:\n\s+').search
+fun_comment = re.compile(r'^\s*\.\.').search
+fun_rst_title = re.compile(
+    r'(?m)(?:^[=\-_\*]+\n(.+)\n[=\-_\*]+)|(?:^(.+)\n[=\-_\*]+)').search
+
+class ARPIFormatter(argparse.HelpFormatter):
+    """
+    ArgParseInator Help Formatter
+
+    Try to extract title form a **rst** formatted title.
+    Try to split lines when found :\n\s (colon newline tab/spaces) sequence.
+        list here:
+            - apple
+            - banana
+            - pasta
+    Try to remove lines **rst** comments (two points ..)
+    Formats default values.
+    """
+
+    def _split_lines(self, text, width):
+        if fun_check(text):
+            return [l for l in text.splitlines(True) if not fun_comment(l)]
+        return [
+            l for l in argparse.HelpFormatter._split_lines(self, text, width)
+            if not fun_comment(l)]
+
+    def _fill_text(self, text, width, indent):
+        pars = text.split("\n\n", True)
+        newtext = []
+        for par in pars:
+            title = fun_rst_title(par)
+            if title:
+                par = "".join([g for g in title.groups() if g])
+            newtext += self._split_lines(par, width) + ['\n\n']
+        newtext.pop()
+        return ''.join([indent + line for line in newtext])
 
 
-class ArgParseInated(object): # pylint: disable=too-few-public-methods
+def formatter_factory(show_defaults=True):
+    """Formatter factory"""
+    def get_help_string(self, action):
+        lhelp = action.help
+        if '%(default)' not in action.help:
+            if action.default is not argparse.SUPPRESS:
+                defaulting_nargs = [argparse.OPTIONAL, argparse.ZERO_OR_MORE]
+                if action.option_strings or action.nargs in defaulting_nargs:
+                    lhelp += ' (default: %(default)s)'
+        return lhelp
+
+    def default_help_string(self, action):
+        return action.help
+    if show_defaults:
+        ARPIFormatter._get_help_string = classmethod(get_help_string)
+    else:
+        ARPIFormatter._get_help_string = classmethod(default_help_string)
+    return ARPIFormatter
+
+
+class ArgParseInated(object):  # pylint: disable=too-few-public-methods
     """
     Class for deriving from
     """
@@ -30,7 +93,7 @@ class ArgParseInated(object): # pylint: disable=too-few-public-methods
         self.parseinator = parseinator
         # and some shortcut
         self.args = parseinator.args
-        self.cfg = parseinator.cfg
+        self.cfg = parseinator.cfg or {}
         self.write = parseinator.write
         self.writeln = parseinator.writeln
         # clall the initialization function
@@ -43,7 +106,7 @@ class ArgParseInated(object): # pylint: disable=too-few-public-methods
         pass
 
 
-class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
+class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
     """
     ArgParseInator class.
     """
@@ -59,9 +122,10 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
     # single command
     _single = False
     add_output = False
+    write_mode = 'wb'
     never_single = False
     # help formatter
-    formatter_class = argparse.RawDescriptionHelpFormatter
+    formatter_class = formatter_factory
     args = None
     argparse_args = {}
     # commands
@@ -75,13 +139,13 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
     # authorization phrase
     auth_phrase = None
     # write name
-    _write_name = "write"
+    _write_name = 'write'
     # write line name
     _write_line_name = 'writeln'
     # global ArgParseInator instance name
     _argpi_name = '__argpi__'
     # auto_exit
-    auto_exit = False
+    auto_exit = True
     msg_on_error_only = False
     cmd_name = None
     default_cmd = None
@@ -90,34 +154,32 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
     error = None
     cfg_file = None
     _cfg_factory = None
+    cfg = None
     # default encoding
     encoding = 'utf-8'
+    _plugins = {}
 
-    def __init__( # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments
             self, add_output=None, argpi_name=None, args=None,
             auth_phrase=None, auto_exit=None, config=None, default_cmd=None,
             error=None, ff_prefix=None, formatter_class=None,
             msg_on_error_only=None, never_single=None, setup=None,
             skip_init=False, write_line_name=None, write_name=None,
+            write_mode=None, show_defaults=True,
             **argparse_args):
+        # setup the global ArgParseInator instance name
+        self._argpi_name = argpi_name or self._argpi_name
+        # set the global reference to th ArgParseInator instance
+        setattr(__builtin__, self._argpi_name, self)
         if skip_init:
             return
         self.auth_phrase = auth_phrase or self.auth_phrase
         self.never_single = never_single or self.never_single
         self.add_output = add_output or self.add_output
+        self.write_mode = write_mode or self.write_mode
         self.ap_args = args or self.ap_args
-        self.auto_exit = auto_exit or self.auto_exit
+        self.auto_exit = auto_exit if auto_exit is not None else self.auto_exit
         self.msg_on_error_only = msg_on_error_only or self.msg_on_error_only
-        # get the main module
-        mod = sys.modules['__main__']
-        # setup the script version
-        if hasattr(mod, '__version__'):
-            version = "%(prog)s " + mod.__version__
-            self.ap_args.append(
-                ap_arg('-v', '--version', action='version', version=version))
-        # setup the script description
-        if 'description' not in argparse_args and hasattr(mod, '__doc__'):
-            argparse_args['description'] = mod.__doc__
         if ff_prefix is True:
             argparse_args['fromfile_prefix_chars'] = '@'
         elif ff_prefix is not None:
@@ -125,9 +187,10 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
         # update the arguments
         self.argparse_args.update(**argparse_args)
         # setup formatter clas
-        self.formatter_class = formatter_class or self.formatter_class
-        # setup the global ArgParseInator instance name
-        self._argpi_name = argpi_name or self._argpi_name
+        if formatter_class:
+            self.formatter_class = formatter_class
+        else:
+            self.formatter_class = formatter_factory(show_defaults)
         # setup the name for the write function
         self._write_name = write_name or self._write_name
         # setup the name for the writeln funcion
@@ -145,17 +208,28 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             # setup the config file
             self.cfg_file = config[0]
             # setup the config factory
-            setattr(self, '_cfg_factory', types.MethodType(config[1], self))
+            cfg_factory = config[1]
+            setattr(self, '_cfg_factory', cfg_factory)
             if len(config) > 2:
                 # if config has 3 elements setup the config error too
                 setattr(self, '_cfg_error', types.MethodType(config[2], self))
-                # self._cfg_error = config[2]
 
-
-    def _compile(self):
+    def _compile(self, module=None):
         """
         Compile functions for argparsing.
         """
+        # get the main module
+        mod = module or sys.modules['__main__']
+        self.mod = mod
+        # setup the script version
+        if hasattr(mod, '__version__'):
+            version = "%(prog)s " + mod.__version__
+            self.ap_args.append(
+                ap_arg('-v', '--version', action='version', version=version))
+        # setup the script description
+        if module is None:
+            if 'description' not in self.argparse_args and hasattr(mod, '__doc__'):
+                self.argparse_args['description'] = mod.__doc__
         # setup main parser
         self.parser = argparse.ArgumentParser(
             formatter_class=self.formatter_class, **self.argparse_args)
@@ -165,25 +239,37 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
                 self.parser, 'error', types.MethodType(self.error, self.parser))
         if self.add_output:
             # add the output options if we have the add_output true
+            if isinstance(self.add_output, basestring):
+                odefault = self.add_output
+            else:
+                odefault = None
             self.parser.add_argument(
-                '-o', '--output', metavar="FILE", help="Output to file")
+                '-o', '--output', metavar="FILE", default=odefault,
+                help="Output to file")
             self.parser.add_argument(
-                '--encoding', default="utf-8",
-                help="Encoding for output file.")
+                '--encoding', default="utf-8", help="Encoding for output file.")
+            self.parser.add_argument(
+                '--write-mode', default=self.write_mode, help="Write mode")
         if self._cfg_factory:
             # if we have a config factory add the config options
             self.parser.add_argument(
                 '-c', '--config', metavar="FILE", default=self.cfg_file,
                 help="Configuration file (default %(default)s)")
-        if self.ap_args is not None:
-            # if we have argment parser args we will add them to the main parser
-            for aargs, akargs in self.ap_args:
-                self.parser.add_argument(*aargs, **akargs)
         if self.auths:
             # if we have authorizations enabled add the auth options
             self.parser.add_argument(
                 '--auth',
                 help="Authorization phrase for special commands.")
+
+        # let's exexcute plugins
+        for plugin in ArgParseInator._plugins.values():
+            plugin(self)
+
+        if self.ap_args is not None:
+            # if we have argment parser args we will add them to the main parser
+            for aargs, akargs in self.ap_args:
+                self.parser.add_argument(*aargs, **akargs)
+
         if len(self.commands) == 1 and self.never_single is False:
             # if we have only one command ad never_single is False
             # setup the command as the only command.
@@ -195,10 +281,19 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             self._single = func
             if not self.parser.description:
                 # replace the description if we dont' have one
-                self.parser.description = func.__doc__ or ""
+                self.parser.description = func.__doc__ or self.parser.description
             else:
                 # or add to the main description
-                self.parser.description += linesep + (func.__doc__ or "")
+                if func.__doc__:
+                    self.parser.description += linesep + linesep + func.__doc__
+            if not self.parser.epilog:
+                # replace the description if we dont' have one
+                self.parser.epilog = getattr(
+                    func, "__epilog__", self.parser.epilog)
+            else:
+                # or add to the main description
+                if hasattr(func, '__epilog__'):
+                    self.parser.epilog += linesep + linesep + func.__epilog__
             utils.set_subcommands(func, self.parser)
         else:
             # if we have more than one command or we don't want a single command
@@ -212,6 +307,7 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             for func in self.commands.values():
                 parser = utils.get_parser(func, self.subparsers)
                 utils.set_subcommands(func, parser)
+        return self.parser
 
     def parse_args(self):
         """
@@ -242,13 +338,14 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
                 if self.args.encoding.lower() == 'raw':
                     # if we have passed a raw encoding we will write directly
                     # to the output file.
-                    self._output = open(self.args.output, 'wb')
+                    self._output = open(self.args.output, self.args.write_mode)
                 else:
                     # else we will use the codecs module to write to the
                     # output file.
                     import codecs
                     self._output = codecs.open(
-                        self.args.output, 'wb', encoding=self.args.encoding)
+                        self.args.output, self.args.write_mode,
+                        encoding=self.args.encoding)
             if self._cfg_factory:
                 # if we have a config factory setup the config file with the
                 # right param
@@ -324,7 +421,8 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             # if we have a cfg_factory
             try:
                 # we try to load a config with the factory
-                self.cfg = self._cfg_factory(self.cfg_file)
+                if self.cfg_file:
+                    self.cfg = self._cfg_factory(self.cfg_file)
             except StandardError as error:
                 # raise se exception
                 self._cfg_error(error)
@@ -373,31 +471,32 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             elif name in self.args:
                 # else if name is in self.args we'll set the relative value.
                 kwargs[name] = getattr(self.args, name)
-        # try to import the builtin module
-        try:
-            import __builtin__
-        except ImportError:
-            import builtins as __builtin__
         # set the **global** write function
         setattr(__builtin__, self._write_name, self.write)
         # set the **global** write line function
         setattr(__builtin__, self._write_line_name, self.writeln)
-        # set the global reference to th ArgParseInator instance
-        setattr(__builtin__, self._argpi_name, self)
         # let's setup something.
         for setup_func in self.setup:
             setup_func(self)
-        # let's execute the command and assign the returned value to retval
-        retval = command(*pargs, **kwargs)
+        # call event before_execute
+        # if events returns a non None value we use it as retrval.
+        retval, pargs, kwargs = self._call_event(
+            'before_execute', command, pargs, kwargs)
+        # if before_execute event returns None go on with command
+        if retval is None:
+            # let's execute the command and assign the returned value to retval
+            retval = command(*pargs, **kwargs)
+            # call event after_execute
+            self._call_event('after_execute', command, pargs, kwargs)
         if self.auto_exit:
             # if we have auto_exit is True
             if retval is None:
-                # if retval is None we'll raise an error
-                raise TypeError("Return value must not be None")
+                # if retval is None we'll assume it's EXIT_OK
+                self.exit(EXIT_OK)
             elif isinstance(retval, basestring):
                 # else if retval is a string we will exit with the message and
                 # ERRORCODE is equal to 0
-                self.exit(0, retval)
+                self.exit(EXIT_OK, retval)
             elif isinstance(retval, int):
                 # else if retval is an integer we'll exits with it as ERRORCODE
                 self.exit(retval)
@@ -410,6 +509,27 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             # else if auto_exit is not True
             # we'll simply return  retval
             return retval
+
+    def _call_event(self, event_name, cmd, pargs, kwargs):
+        """
+        Try to call events for cmd.
+        """
+        def get_result_params(res):
+            """return the right list of params"""
+            if not isinstance(res, (list, tuple)):
+                return res, pargs, kwargs
+            elif len(res) == 2:
+                return res, pargs, kwargs
+            return res[0], (pargs[0], ) + tuple(res[1]), kwargs
+        if hasattr(cmd, event_name):
+            return get_result_params(
+                getattr(cmd, event_name)(pargs[0], *pargs[1:], **kwargs))
+        elif hasattr(cmd.__cls__, event_name):
+            return get_result_params(
+                getattr(cmd.__cls__, event_name)(
+                    pargs[0], cmd.__cmd_name__ or cmd.__name__, *pargs[1:],
+                    **kwargs))
+        return None, pargs, kwargs
 
     def _tounicode(self, string):
         """Silly converter"""
@@ -449,6 +569,11 @@ class ArgParseInator(object): # pylint: disable=too-many-instance-attributes
             # else if msg_on_error_only is not True
             # we'll exit with the status and the message
             self.parser.exit(status, message)
+
+def extend_with(func):
+    """Extends with class or function"""
+    if not func.__name__ in ArgParseInator._plugins:
+        ArgParseInator._plugins[func.__name__] = func
 
 
 def arg(*args, **kwargs):
@@ -567,22 +692,23 @@ def cmd_auth(auth_phrase=None):
     return decorate
 
 
-def import_commands(commands_package):
+def get_compiled():
     """
-    Imports commands from package.
+    :return: The compiled parser.
+    :rtype: parser
+
+    Return the compiled parser.
     """
-    import pkgutil
-    try:
-        # try to import commands module
-        mod = __import__(commands_package)
-    except ImportError:
-        mod = None
-    if mod:
-        # if we have a commands module
-        # we iter the modules and try to import them
-        for module in pkgutil.iter_modules(mod.__path__):
-            try:
-                # try to import the module
-                __import__("{}.{}".format(commands_package, module[1]))
-            except ImportError:
-                pass
+    return ArgParseInator()._compile()
+
+def get_compiled_factory(module):
+    """
+    :module module: Referred module.
+    :return: The compiled parser.
+    :rtype: function
+
+    Return a function that will compile the parser using module as refer.
+    """
+    def _get_compiled():
+        return ArgParseInator()._compile(sys.modules[module])
+    return _get_compiled

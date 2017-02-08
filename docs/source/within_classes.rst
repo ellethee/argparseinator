@@ -16,6 +16,23 @@ There are three properties that we can use within classes.
   declare a list of arguments that will be shared by all commands or
   sub commands.
 
+* :attr:`__no_share__`: Must be defined at function level and can bypass
+  __shared_arguments__.
+  
+    .. code-block:: python
+
+        __shared_arguments__ = [ap_arg("name"), ap_arg("surname")]
+
+        @arg()
+        def mytime(self):
+            pass
+        mytime.__no_share__ = True  # None of __shared_arguments__.
+
+        @arg()
+        def nick(self):
+            pass
+        nick.__no_share__ = ['surname'] # all __shared_arguments__ but not surname.
+
 The way we declare the class using these properties changes the behavior of 
 ArgParseInator. Always using the :ref:`enable_class` decoration for the class
 of course.
@@ -165,4 +182,7 @@ a package.
 
     ArgParseInator().check_command()
 
-... More easy
+.. deprecated:: 1.0.15
+   Use normal import instead. Possibly use :ref:`standalone_approch` or 
+   :ref:`submodules_approch` or :ref:`subprojects_approch`.
+

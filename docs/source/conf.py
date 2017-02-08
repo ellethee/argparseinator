@@ -34,6 +34,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
+    'sphinxarg.ext',
 ]
 # spelling options 
 spelling_lang = 'en_US'

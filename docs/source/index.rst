@@ -3,9 +3,9 @@ ArgParseInator
 .. warning::
 
     My English really sucks!
-    So, if you wanna to correct this documentation or if you want to report 
-    some error. I'll very pleased to receive your suggestions.
-    
+    So, if you wanna to correct this documentation or to report any error, 
+    I'll be very pleased to receive your suggestions.
+
     | email: luca800@gmail.com 
     | documentation_
     
@@ -23,11 +23,13 @@ and classes with the use of some decorators.
 Contents:
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 4
 
     getting_started
     decorators
     within_classes
     argparseinator
     argparseinated
-    examples
+    events
+    utils
+    examples/index.rst
