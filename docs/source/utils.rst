@@ -7,12 +7,14 @@ compiled parser.
 
 :func:`init`
 ============
-.. currentmodule:: argparseinator.__main__
-                        
-.. argparse::
-   :module: argparseinator.__main__
-   :func: get_compiled
-   :prog: python -margparseinator 
+::
+
+    .. currentmodule:: argparseinator.__main__
+                            
+    .. argparse::
+       :module: argparseinator.__main__
+       :func: get_compiled
+       :prog: python -margparseinator 
 
 The Argparse Inator project structures aims to forget about the main script
 and concentrate to the commands part of the project and simplify the
