@@ -1,3 +1,5 @@
+.. currentmodule:: argparseinator
+
 ======================
 ArgParseInator object
 ======================
@@ -21,8 +23,9 @@ ArgParseInator object
 
    * auth_phrase_ - Global authorization phrase (default: ``None``).
 
-   * auto_exit_ - if True ArgParseInator exits just executed the command 
-     using the returned value(s) as status code.
+   * auto_exit_ - if True ArgParseInator uses the functions return values as 
+     exit status code. If the return statment is missing or the return value is
+     None then EXIT_OK will be used (default: ``True``).
 
    * config_ - Tuple containing config filename, config factory and optionally
      a config error handler.
@@ -49,7 +52,11 @@ ArgParseInator object
      :meth:`ArgParseInator.write` (default: ``write``).
 
    * write_line_name_ - Name for the global function which calls
-     :meth:`ArgParseInator.writeln` (default:``writeln``).
+     :meth:`ArgParseInator.writeln` (default: ``writeln``).
+
+   * `write_mode` - default write mode when using add_output_ (default: ``wb``).
+
+   * show_defaults - If True shows default values for parameters in help (default: ``True``).
 
    * argparse_args_ - All standard :class:`ArgumentParser` parameters.
 
@@ -356,10 +363,7 @@ Methods
 
     #. Parse the arguments passed by the command line.
 
-    #. If there are no problems it calls the  command passing the parameters
-       needed. In case the command is a class method instantiates the class,
-       passing the **\**new_attributes** dictionary if the class is inherited
-       from :class:`ArgParseInated` class.
+    #. Try to execute the command.
 
 .. method:: ArgParseInator.write(\*strings)
 
@@ -379,11 +383,12 @@ Methods
 Just before executing the command :class:`ArgParseInator` it adds two global
 shortcuts for its methods :meth:`ArgParseInator.write` and
 :meth:`ArgParseInator.writeln` respectively :meth:`write` and :meth:`writeln`
-and the global reference to the instance as :class:`__argpi__`.
+and the global reference to the *Singleton* instance as :class:`__argpi__`.
 
-Which can be useful within function instead use the 
-```ArgParseInator().write()```, ```ArgParseInator().writeln()``` and 
-```ArgParseInator()``` form.
+So you can use :func:`write` or :func:`writeln` instead of
+```ArgParseInator().write()```, ```ArgParseInator().writeln()```.
+And access directly to the Singleton instance using :class:`__argpi__` instead
+of ```ArgParseInator()```.
 
 The two methods names can be changed via the write_name_ and
 write_line_name_ arguments and the global instance name via the argpi_name_ 
