@@ -63,4 +63,5 @@ setup(
         "optparse optionparser script"
     ),
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    include_package_data=True,
 )

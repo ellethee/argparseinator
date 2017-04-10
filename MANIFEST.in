@@ -1,0 +1,8 @@
+include argparseinator/skeleton/standalone/*
+include argparseinator/skeleton/standalone/project/*
+include argparseinator/skeleton/submodules/*
+include argparseinator/skeleton/submodules/project/*
+include argparseinator/skeleton/submodules/submodule/*
+include argparseinator/skeleton/subprojects/*
+include argparseinator/skeleton/subprojects/project/*
+include argparseinator/skeleton/subprojects/submodule/*

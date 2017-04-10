@@ -19,7 +19,7 @@ import re
 import argparse
 from argparseinator import utils
 from argparseinator import exceptions
-__version__ = "1.0.15"
+__version__ = "1.0.16"
 EXIT_OK = 0
 fun_check = re.compile(r'(?m)^.*?:\n\s+').search
 fun_comment = re.compile(r'^\s*\.\.').search
@@ -63,6 +63,9 @@ def formatter_factory(show_defaults=True):
     """Formatter factory"""
     def get_help_string(self, action):
         lhelp = action.help
+        if isinstance(show_defaults, (list, tuple)):
+            if "-" + action.dest in show_defaults:
+                return lhelp
         if '%(default)' not in action.help:
             if action.default is not argparse.SUPPRESS:
                 defaulting_nargs = [argparse.OPTIONAL, argparse.ZERO_OR_MORE]
@@ -254,7 +257,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             # if we have a config factory add the config options
             self.parser.add_argument(
                 '-c', '--config', metavar="FILE", default=self.cfg_file,
-                help="Configuration file (default %(default)s)")
+                help="Configuration file")
         if self.auths:
             # if we have authorizations enabled add the auth options
             self.parser.add_argument(
@@ -317,8 +320,9 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         self._compile()
         # clear the args
         self.args = None
+        self._self_event('before_parse', 'parse', *sys.argv[1:], **{})
         # list commands/subcommands in argv
-        cmds = [c for c in sys.argv[1:] if not c.startswith("-")]
+        cmds = [cmd for cmd in sys.argv[1:] if not cmd.startswith("-")]
         if (len(cmds) > 0 and not utils.check_help() and self.default_cmd
                 and cmds[0] not in self.commands):
             # if we have at least one command which is not an help command
@@ -479,6 +483,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         for setup_func in self.setup:
             setup_func(self)
         # call event before_execute
+        self._self_event('before_execute', command, *pargs, **kwargs)
         # if events returns a non None value we use it as retrval.
         retval, pargs, kwargs = self._call_event(
             'before_execute', command, pargs, kwargs)
@@ -488,29 +493,39 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             retval = command(*pargs, **kwargs)
             # call event after_execute
             self._call_event('after_execute', command, pargs, kwargs)
+            self._self_event('after_execute', command, *pargs, **kwargs)
         if self.auto_exit:
             # if we have auto_exit is True
             if retval is None:
+                self._self_event(
+                    'before_exit_ok', command, retval=EXIT_OK, *pargs, **kwargs)
                 # if retval is None we'll assume it's EXIT_OK
                 self.exit(EXIT_OK)
             elif isinstance(retval, basestring):
+                self._self_event('before_exit_ok', command, retval=retval, *pargs, **kwargs)
                 # else if retval is a string we will exit with the message and
                 # ERRORCODE is equal to 0
                 self.exit(EXIT_OK, retval)
             elif isinstance(retval, int):
+                if retval == EXIT_OK:
+                    self._self_event('before_exit_ok', command, retval=retval, *pargs, **kwargs)
+                else:
+                    self._self_event('before_exit_error', command, retval=retval, *pargs, **kwargs)
                 # else if retval is an integer we'll exits with it as ERRORCODE
                 self.exit(retval)
             elif isinstance(retval, (tuple, list,)):
+                self._self_event('before_exit_error', command, retval=retval, *pargs, **kwargs)
                 # if retval is a tuple or a list we'll exist with ERRORCODE and
                 # message
                 self.exit(retval[0], retval[1])
+            self._self_event('before_exit', command, retval=retval, *pargs, **kwargs)
             self.exit()
         else:
             # else if auto_exit is not True
             # we'll simply return  retval
             return retval
 
-    def _call_event(self, event_name, cmd, pargs, kwargs):
+    def _call_event(self, event_name, cmd, pargs, kwargs, **kws):
         """
         Try to call events for cmd.
         """
@@ -530,6 +545,19 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
                     pargs[0], cmd.__cmd_name__ or cmd.__name__, *pargs[1:],
                     **kwargs))
         return None, pargs, kwargs
+
+    def _self_event(self, event_name, cmd, *pargs, **kwargs):
+        """Call self event"""
+        if hasattr(self, event_name):
+            getattr(self, event_name)(cmd, *pargs, **kwargs)
+
+
+    @classmethod
+    def add_event(cls, event, event_name=None):
+        """Add events"""
+        # setattr(cls, event_name, event)
+        event_name = event_name or event.__name__
+        setattr(cls, event_name, types.MethodType(event, cls))
 
     def _tounicode(self, string):
         """Silly converter"""
