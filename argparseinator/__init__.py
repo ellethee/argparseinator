@@ -4,6 +4,7 @@
     silly but funny thing thats can help you to manage argparse and functions
 """
 from __future__ import print_function
+import six
 # try to import the builtin module
 try:
     import __builtin__
@@ -75,7 +76,7 @@ def formatter_factory(show_defaults=True):
 
     def default_help_string(self, action):
         return action.help
-    if show_defaults:
+    if show_defaults is True:
         ARPIFormatter._get_help_string = classmethod(get_help_string)
     else:
         ARPIFormatter._get_help_string = classmethod(default_help_string)
@@ -193,7 +194,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         if formatter_class:
             self.formatter_class = formatter_class
         else:
-            self.formatter_class = formatter_factory(show_defaults)
+            self.formatter_class = formatter_factory(show_defaults=show_defaults)
         # setup the name for the write function
         self._write_name = write_name or self._write_name
         # setup the name for the writeln funcion
@@ -276,7 +277,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         if len(self.commands) == 1 and self.never_single is False:
             # if we have only one command ad never_single is False
             # setup the command as the only command.
-            func = self.commands.values()[0]
+            func = six.next(six.itervalues(self.commands))
             # add the arguments to the main parser
             for args, kwargs in func.__arguments__:
                 self.parser.add_argument(*args, **kwargs)

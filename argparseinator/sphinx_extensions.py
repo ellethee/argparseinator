@@ -13,6 +13,10 @@ class ResetArgParseInator(Directive):
 
     def run(self):
         import argparseinator
+        try:
+            reload(argparseinator)
+        except NameError:
+            from imp import reload
         reload(argparseinator)
         os.environ['ARPI_DOC_MOD'] = self.arguments[0]
         return []
