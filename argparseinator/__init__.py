@@ -4,7 +4,6 @@
     silly but funny thing thats can help you to manage argparse and functions
 """
 from __future__ import print_function
-import six
 # try to import the builtin module
 try:
     import __builtin__
@@ -18,6 +17,7 @@ from os import linesep
 import os
 import re
 import argparse
+import six
 from argparseinator import utils
 from argparseinator import exceptions
 __version__ = "1.0.17"
@@ -586,6 +586,8 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         """
         Terminate the script.
         """
+        if not self.parser:
+            self.parser = argparse.ArgumentParser()
         if self.msg_on_error_only:
             # if msg_on_error_only is True
             if status != EXIT_OK:
