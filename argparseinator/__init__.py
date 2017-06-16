@@ -20,7 +20,7 @@ import argparse
 import six
 from argparseinator import utils
 from argparseinator import exceptions
-__version__ = "1.0.17"
+__version__ = "1.0.18"
 EXIT_OK = 0
 fun_check = re.compile(r'(?m)^.*?:\n\s+').search
 fun_comment = re.compile(r'^\s*\.\.').search
