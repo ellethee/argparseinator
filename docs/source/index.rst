@@ -13,10 +13,10 @@ ArgParseInator
 `argparse`_'s arguments and options to your script directly within functions
 and classes with the use of some decorators.
 
-.. _ArgParseInator: https://bitbucket.org/ellethee/argparseinator/overview
+.. _ArgParseInator: https://github.com/ellethee/argparseinator
 .. _argparse: https://docs.python.org/2/library/argparse.html
 .. _ArgumentParser: https://docs.python.org/2/library/argparse.html#argumentparser-objects
-.. _documentation: https://bitbucket.org/ellethee/argparseinator/src/f18f97c5c5577f96f8bf8b4ed27e544271a0da66/docs/source/?at=default
+.. _documentation: https://github.com/ellethee/argparseinator/tree/master/docs
 .. _ellethe: mailto://luca800@gmail.com
 .. _luca800@gmail.com: mailto://luca800@gmail.com
 

@@ -45,7 +45,7 @@ setup(
         "within functions and classes. just defining function's args."
     ),
     long_description=LONG_DESCRIPTION,
-    url="https://bitbucket.org/ellethee/argparseinator/overview",
+    url="https://github.com/ellethee/argparseinator",
     author='ellethee',
     author_email='luca800@gmail.com',
     license='MIT',
