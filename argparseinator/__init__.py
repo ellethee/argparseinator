@@ -20,7 +20,9 @@ import argparse
 import six
 from argparseinator import utils
 from argparseinator import exceptions
-__version__ = "1.0.18"
+if sys.version_info >= (3, 0):
+    basestring = str
+__version__ = "1.0.19"
 EXIT_OK = 0
 fun_check = re.compile(r'(?m)^.*?:\n\s+').search
 fun_comment = re.compile(r'^\s*\.\.').search

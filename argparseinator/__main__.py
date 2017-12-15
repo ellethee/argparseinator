@@ -10,9 +10,12 @@ from __future__ import absolute_import, print_function
 import os
 from os.path import join, basename, dirname, abspath, relpath, splitext
 from string import Formatter
+import sys
 from argparseinator import ArgParseInator, arg, __version__
 from argparseinator import get_compiled
 import argparse
+if sys.version_info >= (3, 0):
+    basestring = str
 CUR_DIR = abspath(os.curdir)
 SKEL_PATH = join(abspath(dirname(__file__)), 'skeleton')
 
@@ -61,7 +64,9 @@ def copy_skeleton(
     exclude_files = exclude_files or []
     for root, dirs, files in os.walk(src, topdown=True):
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
-        files[:] = [f for f in files if f not in exclude_files]
+        files[:] = [
+            f for f in files if f not in exclude_files
+            and not f.endswith('pyo') and not f.endswith('pyc')]
         for dname in [join(dest, d) for d in dirs if d]:
             for rsrc, rdest in renames:
                 dname = dname.replace(rsrc, rdest)
@@ -87,9 +92,9 @@ def copy_skeleton(
                 wholetitlemark=wholetitlemark,
                 parentname=basename(dirname(dfile)),
             ))
-            script = open(sfile, 'rb').read()
+            script = open(sfile, 'r').read()
             code = fmt.format(script, **fmt.info)
-            open(dfile, 'wb').write(code)
+            open(dfile, 'w').write(code)
 
 
 @arg("subnames", help="Subproject/Submodule name", nargs="*")
