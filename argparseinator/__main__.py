@@ -72,7 +72,7 @@ def copy_skeleton(
                 dname = dname.replace(rsrc, rdest)
             try:
                 os.makedirs(dname)
-            except StandardError:
+            except Exception:
                 pass
         for fname in files:
             sfile = join(root, fname)
@@ -93,8 +93,11 @@ def copy_skeleton(
                 parentname=basename(dirname(dfile)),
             ))
             script = open(sfile, 'r').read()
-            code = fmt.format(script, **fmt.info)
-            open(dfile, 'w').write(code)
+            try:
+                code = fmt.format(script, **fmt.info)
+                open(dfile, 'w').write(code)
+            except ValueError:
+                pass
 
 
 @arg("subnames", help="Subproject/Submodule name", nargs="*")

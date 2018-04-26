@@ -430,7 +430,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
                 # we try to load a config with the factory
                 if self.cfg_file:
                     self.cfg = self._cfg_factory(self.cfg_file)
-            except StandardError as error:
+            except Exception as error:
                 # raise se exception
                 self._cfg_error(error)
         # let's get command(function) argspec
