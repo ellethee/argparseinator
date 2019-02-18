@@ -562,18 +562,11 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         event_name = event_name or event.__name__
         setattr(cls, event_name, types.MethodType(event, cls))
 
-    def _tounicode(self, string):
-        """Silly converter"""
-        if not isinstance(string, unicode):
-            # if string is not unicode we'll comverte it
-            string = unicode(string, self.encoding)
-        return string
-
     def write(self, *string):
         """
         Writes to the output
         """
-        self._output.write(' '.join([self._tounicode(s) for s in string]))
+        self._output.write(' '.join([six.text_type(s) for s in string]))
         return self
 
     def writeln(self, *string):
@@ -581,7 +574,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         Wrtie lines to the output
         """
         self._output.write(' '.join([
-            self._tounicode(s) for s in string]) + linesep)
+            six.text_type(s) for s in string]) + linesep)
         return self
 
     def exit(self, status=EXIT_OK, message=None):
