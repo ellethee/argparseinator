@@ -22,7 +22,7 @@ from argparseinator import utils
 from argparseinator import exceptions
 if sys.version_info >= (3, 0):
     basestring = str
-__version__ = "1.0.20"
+__version__ = "1.0.21"
 EXIT_OK = 0
 fun_check = re.compile(r'(?m)^.*?:\n\s+').search
 fun_comment = re.compile(r'^\s*\.\.').search
