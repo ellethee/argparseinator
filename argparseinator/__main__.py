@@ -147,4 +147,5 @@ def init(name, subnames, dest, skeleton, description, project_type, skip_core):
 if __name__ == '__main__':
     ArgParseInator(
         prog="python -margparseinator", auto_exit=True,
+
         show_defaults=False).check_command()

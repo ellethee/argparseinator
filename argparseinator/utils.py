@@ -220,8 +220,20 @@ def get_parser(func, parent):
     Imposta il parser.
     """
     parser = parent.add_parser(func.__cmd_name__, help=func.__doc__)
+    exc_grps = {}
     for args, kwargs in func.__arguments__:
-        parser.add_argument(*args, **kwargs)
+        exc_grp = kwargs.pop("exc_grp", None)
+        if exc_grp:
+            if isinstance(exc_grp, (list, tuple)):
+                name, required = exc_grp
+            else:
+                name, required = exc_grp, False
+            if not name in exc_grps:
+                exc_grps[name] = parser.add_mutually_exclusive_group(
+                    required=required)
+            exc_grps[name].add_argument(*args, **kwargs)
+        else:
+            parser.add_argument(*args, **kwargs)
     return parser
 
 

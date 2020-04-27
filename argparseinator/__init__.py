@@ -22,12 +22,13 @@ from argparseinator import utils
 from argparseinator import exceptions
 if sys.version_info >= (3, 0):
     basestring = str
-__version__ = "1.0.21"
+__version__ = "1.0.22"
 EXIT_OK = 0
 fun_check = re.compile(r'(?m)^.*?:\n\s+').search
 fun_comment = re.compile(r'^\s*\.\.').search
 fun_rst_title = re.compile(
     r'(?m)(?:^[=\-_\*]+\n(.+)\n[=\-_\*]+)|(?:^(.+)\n[=\-_\*]+)').search
+
 
 class ARPIFormatter(argparse.HelpFormatter):
     """
@@ -57,23 +58,24 @@ class ARPIFormatter(argparse.HelpFormatter):
             title = fun_rst_title(par)
             if title:
                 par = "".join([g for g in title.groups() if g])
-            newtext += self._split_lines(par, width) + ['\n\n']
+            newtext += self._split_lines(par, width) + ["\n\n"]
         newtext.pop()
-        return ''.join([indent + line for line in newtext])
+        return "".join([indent + line for line in newtext])
 
 
 def formatter_factory(show_defaults=True):
     """Formatter factory"""
+
     def get_help_string(self, action):
         lhelp = action.help
         if isinstance(show_defaults, (list, tuple)):
             if "-" + action.dest in show_defaults:
                 return lhelp
-        if '%(default)' not in action.help:
+        if "%(default)" not in action.help:
             if action.default is not argparse.SUPPRESS:
                 defaulting_nargs = [argparse.OPTIONAL, argparse.ZERO_OR_MORE]
                 if action.option_strings or action.nargs in defaulting_nargs:
-                    lhelp += ' (default: %(default)s)'
+                    lhelp += " (default: %(default)s)"
         return lhelp
 
     def default_help_string(self, action):
@@ -91,6 +93,7 @@ class ArgParseInated(object):  # pylint: disable=too-few-public-methods
     """
     __shared_arguments__ = []
     __arguments__ = []
+    _current_command = None
 
     def __init__(self, parseinator, **new_attributes):
         # update the class attributes
@@ -111,6 +114,16 @@ class ArgParseInated(object):  # pylint: disable=too-few-public-methods
         """
         pass
 
+    def _my_args(self):
+        if not self._current_command:
+            return {}
+        return {
+            k: self.args.__dict__[k]
+            for p, a in self._current_command.__arguments__ or []
+            for k in [a.get("dest", p[-1].replace("--", ""))]
+            if k in self.args.__dict__
+        }
+
 
 class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
     """
@@ -120,7 +133,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
     __metaclass__ = utils.Singleton
     __reinit__ = True
     # setup the standard output
-    _output = sys.stdout
+    _output = None
     # the main parser object
     parser = None
     # parsed status
@@ -128,7 +141,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
     # single command
     _single = False
     add_output = False
-    write_mode = 'wb'
+    write_mode = "wb"
     never_single = False
     # help formatter
     formatter_class = formatter_factory
@@ -145,11 +158,11 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
     # authorization phrase
     auth_phrase = None
     # write name
-    _write_name = 'write'
+    _write_name = "write"
     # write line name
-    _write_line_name = 'writeln'
+    _write_line_name = "writeln"
     # global ArgParseInator instance name
-    _argpi_name = '__argpi__'
+    _argpi_name = "__argpi__"
     # auto_exit
     auto_exit = True
     msg_on_error_only = False
@@ -162,7 +175,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
     _cfg_factory = None
     cfg = None
     # default encoding
-    encoding = 'utf-8'
+    encoding = "utf-8"
     _plugins = {}
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -187,16 +200,17 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         self.auto_exit = auto_exit if auto_exit is not None else self.auto_exit
         self.msg_on_error_only = msg_on_error_only or self.msg_on_error_only
         if ff_prefix is True:
-            argparse_args['fromfile_prefix_chars'] = '@'
+            argparse_args["fromfile_prefix_chars"] = "@"
         elif ff_prefix is not None:
-            argparse_args['fromfile_prefix_chars'] = ff_prefix
+            argparse_args["fromfile_prefix_chars"] = ff_prefix
         # update the arguments
         self.argparse_args.update(**argparse_args)
         # setup formatter clas
         if formatter_class:
             self.formatter_class = formatter_class
         else:
-            self.formatter_class = formatter_factory(show_defaults=show_defaults)
+            self.formatter_class = formatter_factory(
+                show_defaults=show_defaults)
         # setup the name for the write function
         self._write_name = write_name or self._write_name
         # setup the name for the writeln funcion
@@ -215,34 +229,34 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             self.cfg_file = config[0]
             # setup the config factory
             cfg_factory = config[1]
-            setattr(self, '_cfg_factory', cfg_factory)
+            setattr(self, "_cfg_factory", cfg_factory)
             if len(config) > 2:
                 # if config has 3 elements setup the config error too
-                setattr(self, '_cfg_error', types.MethodType(config[2], self))
+                setattr(self, "_cfg_error", types.MethodType(config[2], self))
 
     def _compile(self, module=None):
         """
         Compile functions for argparsing.
         """
         # get the main module
-        mod = module or sys.modules['__main__']
+        mod = module or sys.modules["__main__"]
         self.mod = mod
         # setup the script version
-        if hasattr(mod, '__version__'):
+        if hasattr(mod, "__version__"):
             version = "%(prog)s " + mod.__version__
             self.ap_args.append(
-                ap_arg('-v', '--version', action='version', version=version))
+                ap_arg("-v", "--version", action="version", version=version))
         # setup the script description
         if module is None:
-            if 'description' not in self.argparse_args and hasattr(mod, '__doc__'):
-                self.argparse_args['description'] = mod.__doc__
+            if "description" not in self.argparse_args and hasattr(mod, "__doc__"):
+                self.argparse_args["description"] = mod.__doc__
         # setup main parser
         self.parser = argparse.ArgumentParser(
             formatter_class=self.formatter_class, **self.argparse_args)
         if self.error:
             # setup the error method if we have one
             setattr(
-                self.parser, 'error', types.MethodType(self.error, self.parser))
+                self.parser, "error", types.MethodType(self.error, self.parser))
         if self.add_output:
             # add the output options if we have the add_output true
             if isinstance(self.add_output, basestring):
@@ -250,21 +264,21 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             else:
                 odefault = None
             self.parser.add_argument(
-                '-o', '--output', metavar="FILE", default=odefault,
+                "-o", "--output", metavar="FILE", default=odefault,
                 help="Output to file")
             self.parser.add_argument(
-                '--encoding', default="utf-8", help="Encoding for output file.")
+                "--encoding", default="utf-8", help="Encoding for output file.")
             self.parser.add_argument(
-                '--write-mode', default=self.write_mode, help="Write mode")
+                "--write-mode", default=self.write_mode, help="Write mode")
         if self._cfg_factory:
             # if we have a config factory add the config options
             self.parser.add_argument(
-                '-c', '--config', metavar="FILE", default=self.cfg_file,
+                "-c", "--config", metavar="FILE", default=self.cfg_file,
                 help="Configuration file")
         if self.auths:
             # if we have authorizations enabled add the auth options
             self.parser.add_argument(
-                '--auth',
+                "--auth",
                 help="Authorization phrase for special commands.")
 
         # let's exexcute plugins
@@ -281,8 +295,20 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             # setup the command as the only command.
             func = six.next(six.itervalues(self.commands))
             # add the arguments to the main parser
+            exc_grps = {}
             for args, kwargs in func.__arguments__:
-                self.parser.add_argument(*args, **kwargs)
+                exc_grp = kwargs.pop("exc_grp", None)
+                if exc_grp:
+                    if isinstance(exc_grp, (list, tuple)):
+                        name, required = exc_grp
+                    else:
+                        name, required = exc_grp, False
+                    if not name in exc_grps:
+                        exc_grps[name] = self.parser.add_mutually_exclusive_group(
+                            required=required)
+                    exc_grps[name].add_argument(*args, **kwargs)
+                else:
+                    self.parser.add_argument(*args, **kwargs)
             # shortcut for the single command
             self._single = func
             if not self.parser.description:
@@ -298,7 +324,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
                     func, "__epilog__", self.parser.epilog)
             else:
                 # or add to the main description
-                if hasattr(func, '__epilog__'):
+                if hasattr(func, "__epilog__"):
                     self.parser.epilog += linesep + linesep + func.__epilog__
             utils.set_subcommands(func, self.parser)
         else:
@@ -307,7 +333,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             self._single = None
             # setup the subparsers
             self.subparsers = self.parser.add_subparsers(
-                title=utils.COMMANDS_LIST_TITLE, dest='command',
+                title=utils.COMMANDS_LIST_TITLE, dest="command",
                 description=utils.COMMANDS_LIST_DESCRIPTION)
             # add all the commands
             for func in self.commands.values():
@@ -323,7 +349,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         self._compile()
         # clear the args
         self.args = None
-        self._self_event('before_parse', 'parse', *sys.argv[1:], **{})
+        self._self_event("before_parse", "parse", *sys.argv[1:], **{})
         # list commands/subcommands in argv
         cmds = [cmd for cmd in sys.argv[1:] if not cmd.startswith("-")]
         if (len(cmds) > 0 and not utils.check_help() and self.default_cmd
@@ -342,7 +368,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
                 # If add_output is True and we have an output file
                 # setup the encoding
                 self.encoding = self.args.encoding
-                if self.args.encoding.lower() == 'raw':
+                if self.args.encoding.lower() == "raw":
                     # if we have passed a raw encoding we will write directly
                     # to the output file.
                     self._output = open(self.args.output, self.args.write_mode)
@@ -402,7 +428,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             # get the right command
             func = self.commands[self.args.command]
 
-        if hasattr(func, '__subcommands__') and func.__subcommands__:
+        if hasattr(func, "__subcommands__") and func.__subcommands__:
             # if we have subcommands get the command from them
             command = func.__subcommands__[self.args.subcommand]
         else:
@@ -452,11 +478,11 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         kwargs = {}
         # for every argument in argument names
         for name in args_names:
-            if name == 'args':
+            if name == "args":
                 # if argument name is *special name* **args**
                 # we append a reference to self.args
                 pargs.append(self.args)
-            elif name == 'self':
+            elif name == "self":
                 # else if argment name is *special name* **self**
                 if ArgParseInated in inspect.getmro(func.__cls__):
                     # if the class that holds the function is subclass of
@@ -471,7 +497,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
                 pargs.append(getattr(self.args, name))
         # for every argument in keyword arguments
         for name in kwargs_name:
-            if name == 'args':
+            if name == "args":
                 # if argument name is *special name* **args**
                 # we set for the arg a reference to self.args
                 kwargs[name] = self.args
@@ -485,43 +511,49 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         # let's setup something.
         for setup_func in self.setup:
             setup_func(self)
+        func._current_command = command
         # call event before_execute
-        self._self_event('before_execute', command, *pargs, **kwargs)
+        self._self_event("before_execute", command, *pargs, **kwargs)
         # if events returns a non None value we use it as retrval.
         retval, pargs, kwargs = self._call_event(
-            'before_execute', command, pargs, kwargs)
+            "before_execute", command, pargs, kwargs)
         # if before_execute event returns None go on with command
         if retval is None:
             # let's execute the command and assign the returned value to retval
             retval = command(*pargs, **kwargs)
             # call event after_execute
-            self._call_event('after_execute', command, pargs, kwargs)
-            self._self_event('after_execute', command, *pargs, **kwargs)
+            self._call_event("after_execute", command, pargs, kwargs)
+            self._self_event("after_execute", command, *pargs, **kwargs)
         if self.auto_exit:
             # if we have auto_exit is True
             if retval is None:
                 self._self_event(
-                    'before_exit_ok', command, retval=EXIT_OK, *pargs, **kwargs)
+                    "before_exit_ok", command, retval=EXIT_OK, *pargs, **kwargs)
                 # if retval is None we'll assume it's EXIT_OK
                 self.exit(EXIT_OK)
             elif isinstance(retval, basestring):
-                self._self_event('before_exit_ok', command, retval=retval, *pargs, **kwargs)
+                self._self_event("before_exit_ok", command,
+                                 retval=retval, *pargs, **kwargs)
                 # else if retval is a string we will exit with the message and
                 # ERRORCODE is equal to 0
                 self.exit(EXIT_OK, retval)
             elif isinstance(retval, int):
                 if retval == EXIT_OK:
-                    self._self_event('before_exit_ok', command, retval=retval, *pargs, **kwargs)
+                    self._self_event("before_exit_ok", command,
+                                     retval=retval, *pargs, **kwargs)
                 else:
-                    self._self_event('before_exit_error', command, retval=retval, *pargs, **kwargs)
+                    self._self_event("before_exit_error", command,
+                                     retval=retval, *pargs, **kwargs)
                 # else if retval is an integer we'll exits with it as ERRORCODE
                 self.exit(retval)
             elif isinstance(retval, (tuple, list,)):
-                self._self_event('before_exit_error', command, retval=retval, *pargs, **kwargs)
+                self._self_event("before_exit_error", command,
+                                 retval=retval, *pargs, **kwargs)
                 # if retval is a tuple or a list we'll exist with ERRORCODE and
                 # message
                 self.exit(retval[0], retval[1])
-            self._self_event('before_exit', command, retval=retval, *pargs, **kwargs)
+            self._self_event("before_exit", command,
+                             retval=retval, *pargs, **kwargs)
             self.exit()
         else:
             # else if auto_exit is not True
@@ -554,7 +586,6 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         if hasattr(self, event_name):
             getattr(self, event_name)(cmd, *pargs, **kwargs)
 
-
     @classmethod
     def add_event(cls, event, event_name=None):
         """Add events"""
@@ -566,15 +597,14 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
         """
         Writes to the output
         """
-        self._output.write(' '.join([six.text_type(s) for s in string]))
+        print(*string, file=self._output)
         return self
 
     def writeln(self, *string):
         """
         Wrtie lines to the output
         """
-        self._output.write(' '.join([
-            six.text_type(s) for s in string]) + linesep)
+        print(*string, sep=linesep, file=self._output)
         return self
 
     def exit(self, status=EXIT_OK, message=None):
@@ -596,6 +626,7 @@ class ArgParseInator(object):  # pylint: disable=too-many-instance-attributes
             # we'll exit with the status and the message
             self.parser.exit(status, message)
 
+
 def extend_with(func):
     """Extends with class or function"""
     if not func.__name__ in ArgParseInator._plugins:
@@ -613,10 +644,10 @@ def arg(*args, **kwargs):
         # we'll set the command name with the passed cmd_name argument, if
         # exist, else the command name will be the function name
         func.__cmd_name__ = kwargs.pop(
-            'cmd_name', getattr(func, '__cmd_name__', func.__name__))
+            "cmd_name", getattr(func, "__cmd_name__", func.__name__))
         # retrieve the class (SillyClass)
         func.__cls__ = utils.check_class()
-        if not hasattr(func, '__arguments__'):
+        if not hasattr(func, "__arguments__"):
             # if the funcion hasn't the __arguments__ yet, we'll setup them
             # using get_functarguments.
             func.__arguments__ = utils.get_functarguments(func)
@@ -625,7 +656,7 @@ def arg(*args, **kwargs):
             # we'll try to get the destination name from the kwargs ('dest')
             # else we'll use the last arg name as destination
             arg_name = kwargs.get(
-                'dest', args[-1].lstrip('-').replace('-', '_'))
+                "dest", args[-1].lstrip("-").replace("-", "_"))
             try:
                 # we try to get the command index.
                 idx = func.__named__.index(arg_name)
@@ -660,17 +691,17 @@ def class_args(cls):
     cls.__cls__ = cls
     cmds = {}
     # get eventual class arguments
-    cls.__arguments__ = getattr(cls, '__arguments__', [])
+    cls.__arguments__ = getattr(cls, "__arguments__", [])
     # cycle through class functions
     for func in [f for f in cls.__dict__.values()
-                 if hasattr(f, '__cmd_name__') and not inspect.isclass(f)]:
+                 if hasattr(f, "__cmd_name__") and not inspect.isclass(f)]:
         # clear subcommands
         func.__subcommands__ = None
         # set the parent class
         func.__cls__ = cls
         # assign to commands dict
         cmds[func.__cmd_name__] = func
-    if hasattr(cls, '__cmd_name__') and cls.__cmd_name__ not in ap_.commands:
+    if hasattr(cls, "__cmd_name__") and cls.__cmd_name__ not in ap_.commands:
         # if che class has the __cmd_name__ attribute and is not already present
         # in the ArgParseInator commands
         # set the class subcommands
@@ -726,6 +757,7 @@ def get_compiled():
     Return the compiled parser.
     """
     return ArgParseInator()._compile()
+
 
 def get_compiled_factory(module):
     """
